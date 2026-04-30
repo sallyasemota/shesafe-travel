@@ -1,12 +1,12 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import LandingPage from './pages/LandingPage'
+import CreateTrip from './pages/CreateTrip'
 import TripSafetyPage from './pages/TripSafetyPage'
 import './index.css'
 
 const router = createBrowserRouter([
-  { path: '/', element: <LandingPage /> },
+  { path: '/', element: <CreateTrip /> },
   { path: '/trip/:shareCode', element: <TripSafetyPage /> },
 ])
 

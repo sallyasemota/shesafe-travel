@@ -1,22 +1,20 @@
 export interface EmergencyContact {
   name: string
-  relationship: string
   phone: string
-  email?: string
+  relationship: string
 }
 
 export interface MedicalInfo {
-  blood_type?: string
   allergies?: string[]
-  conditions?: string[]
   medications?: string[]
-  notes?: string
+  blood_type?: string
+  conditions?: string[]
 }
 
 export interface PassportInfo {
   number?: string
-  country?: string
-  expires_at?: string
+  issuing_country?: string
+  expiry_date?: string
 }
 
 export interface BriefingData {
@@ -31,7 +29,7 @@ export interface BriefingData {
   [key: string]: unknown
 }
 
-export type CheckInStatus = 'pending' | 'safe' | 'overdue' | 'alert'
+export type CheckInStatus = 'inactive' | 'active' | 'overdue' | 'alert'
 
 export interface Trip {
   id: string
@@ -49,5 +47,14 @@ export interface Trip {
   timer_expires_at: string | null
   passport_info: PassportInfo | null
   traveler_photo_url: string | null
+  traveler_phone: string | null
+  created_at: string
+}
+
+export interface CheckIn {
+  id: string
+  trip_id: string
+  status: 'safe' | 'help' | 'custom'
+  message: string | null
   created_at: string
 }
