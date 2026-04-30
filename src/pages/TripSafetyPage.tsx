@@ -434,6 +434,32 @@ function IfIGoMissing({ trip }: { trip: Trip }) {
           </p>
         </div>
       )}
+
+      {(trip.hotel_name || trip.hotel_address || trip.hotel_phone) && (
+        <div>
+          <p className="text-xs uppercase font-semibold text-red-700 mb-2">
+            Last known accommodation
+          </p>
+          <ul className="text-sm text-red-900 space-y-1">
+            {trip.hotel_name && (
+              <li>
+                <span className="font-semibold">Name:</span> {trip.hotel_name}
+              </li>
+            )}
+            {trip.hotel_address && (
+              <li>
+                <span className="font-semibold">Address:</span>{' '}
+                {trip.hotel_address}
+              </li>
+            )}
+            {trip.hotel_phone && (
+              <li>
+                <span className="font-semibold">Phone:</span> {trip.hotel_phone}
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

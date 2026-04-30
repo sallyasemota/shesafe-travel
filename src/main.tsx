@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { OfflineBanner } from './components/OfflineBanner'
 import CreateTrip from './pages/CreateTrip'
 import TripSafetyPage from './pages/TripSafetyPage'
 import './index.css'
@@ -12,6 +13,7 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <OfflineBanner />
     <RouterProvider router={router} />
   </StrictMode>,
 )

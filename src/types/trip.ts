@@ -74,6 +74,9 @@ export interface Trip {
   passport_info: PassportInfo | null
   traveler_photo_url: string | null
   traveler_phone: string | null
+  hotel_name: string | null
+  hotel_address: string | null
+  hotel_phone: string | null
   created_at: string
 }
 

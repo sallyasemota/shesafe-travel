@@ -50,6 +50,9 @@ export default function CreateTrip() {
   const [medications, setMedications] = useState('')
   const [bloodType, setBloodType] = useState('')
   const [photoUrl, setPhotoUrl] = useState('')
+  const [hotelName, setHotelName] = useState('')
+  const [hotelAddress, setHotelAddress] = useState('')
+  const [hotelPhone, setHotelPhone] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -120,6 +123,9 @@ export default function CreateTrip() {
         medical_info: medicalInfo,
         passport_info: passportInfo,
         traveler_photo_url: photoUrl.trim() || null,
+        hotel_name: hotelName.trim() || null,
+        hotel_address: hotelAddress.trim() || null,
+        hotel_phone: hotelPhone.trim() || null,
         share_code: shareCode,
         check_in_status: 'inactive',
       })
@@ -450,6 +456,54 @@ export default function CreateTrip() {
                       value={photoUrl}
                       onChange={(e) => setPhotoUrl(e.target.value)}
                       placeholder="https://..."
+                      className={inputBase}
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t border-navy/10 pt-4 mt-2 space-y-4">
+                  <p className="text-xs uppercase tracking-wider text-navy/60 font-semibold">
+                    Where you're staying
+                  </p>
+
+                  <div>
+                    <label className={labelBase} htmlFor="hotelName">
+                      Hotel / accommodation name
+                    </label>
+                    <input
+                      id="hotelName"
+                      type="text"
+                      value={hotelName}
+                      onChange={(e) => setHotelName(e.target.value)}
+                      placeholder="e.g. Riad Yasmine"
+                      className={inputBase}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelBase} htmlFor="hotelAddress">
+                      Address
+                    </label>
+                    <input
+                      id="hotelAddress"
+                      type="text"
+                      value={hotelAddress}
+                      onChange={(e) => setHotelAddress(e.target.value)}
+                      placeholder="Street, neighborhood"
+                      className={inputBase}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelBase} htmlFor="hotelPhone">
+                      Hotel phone
+                    </label>
+                    <input
+                      id="hotelPhone"
+                      type="tel"
+                      value={hotelPhone}
+                      onChange={(e) => setHotelPhone(e.target.value)}
+                      placeholder="+212 ..."
                       className={inputBase}
                     />
                   </div>

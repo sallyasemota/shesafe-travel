@@ -215,6 +215,26 @@ export function generateSafetyPDF(trip: Trip): void {
     cursor.y += 10
   }
 
+  if (trip.hotel_name || trip.hotel_address || trip.hotel_phone) {
+    drawSectionTitle(doc, cursor, "WHERE I'M STAYING")
+    setNavy(doc)
+    if (trip.hotel_name) {
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(13)
+      doc.text(trip.hotel_name, MARGIN, cursor.y)
+      cursor.y += 6
+    }
+    if (trip.hotel_address) {
+      drawWrappedText(doc, cursor, trip.hotel_address, 12, 'normal')
+    }
+    if (trip.hotel_phone) {
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(14)
+      doc.text(trip.hotel_phone, MARGIN, cursor.y)
+      cursor.y += 8
+    }
+  }
+
   drawFooter(
     doc,
     'If you need help, call these numbers first.',
