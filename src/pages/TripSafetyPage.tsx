@@ -135,17 +135,32 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         isAlert ? 'bg-red-50' : 'bg-cream'
       }`}
     >
+      <nav
+        className={`border-b ${
+          isAlert ? 'border-red-200/60' : 'border-navy/[0.06]'
+        }`}
+      >
+        <div className="px-5 sm:px-8 py-4 max-w-2xl mx-auto flex items-center justify-between gap-4">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-navy/70 hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/40 focus-visible:ring-offset-2 focus-visible:ring-offset-cream rounded-full px-2 py-1"
+          >
+            <span aria-hidden>←</span> Home
+          </Link>
+          <Link
+            to="/"
+            aria-label="SheSafe Travel — home"
+            className="font-serif font-medium text-lg tracking-tight hover:opacity-80 transition-opacity"
+          >
+            SheSafe<span className="italic text-coral"> Travel</span>
+          </Link>
+        </div>
+      </nav>
+
       {trip.share_code === 'marrakech-demo' && <DemoBanner trip={trip} />}
 
       <header className="px-5 pt-8 pb-6 max-w-2xl mx-auto">
-        <Link
-          to="/"
-          aria-label="SheSafe Travel — home"
-          className="font-serif font-medium text-lg tracking-tight inline-block hover:opacity-80 transition-opacity"
-        >
-          SheSafe<span className="italic text-coral"> Travel</span>
-        </Link>
-        <h1 className="mt-3 font-serif font-medium text-3xl md:text-5xl leading-[1.1] tracking-[-0.015em]">
+        <h1 className="font-serif font-medium text-3xl md:text-5xl leading-[1.1] tracking-[-0.015em]">
           {trip.traveler_name}'s trip to{' '}
           <span className="italic text-coral">
             {trip.destination_city}, {trip.destination_country}
