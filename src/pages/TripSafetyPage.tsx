@@ -135,16 +135,20 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
       }`}
     >
       <header className="px-5 pt-8 pb-6 max-w-2xl mx-auto">
-        <p className="text-xs uppercase tracking-widest text-coral font-semibold">
-          SheSafe Travel
-        </p>
-        <h1 className="mt-2 text-3xl md:text-4xl font-semibold leading-tight">
+        <Link
+          to="/"
+          aria-label="SheSafe Travel — home"
+          className="font-serif font-medium text-lg tracking-tight inline-block hover:opacity-80 transition-opacity"
+        >
+          SheSafe<span className="italic text-coral"> Travel</span>
+        </Link>
+        <h1 className="mt-3 font-serif font-medium text-3xl md:text-5xl leading-[1.1] tracking-[-0.015em]">
           {trip.traveler_name}'s trip to{' '}
-          <span className="text-coral">
+          <span className="italic text-coral">
             {trip.destination_city}, {trip.destination_country}
           </span>
         </h1>
-        <p className="mt-3 text-lg text-navy/80">
+        <p className="mt-3 text-base sm:text-lg text-navy/75">
           {formatDate(trip.travel_dates_start)} →{' '}
           {formatDate(trip.travel_dates_end)}
         </p>

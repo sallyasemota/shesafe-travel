@@ -1,5 +1,5 @@
 import { useState, type FormEventHandler } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { EmergencyContact } from '../types/trip'
 
@@ -163,18 +163,39 @@ export default function CreateTrip() {
   }
 
   return (
-    <main className="min-h-full bg-cream text-navy">
-      <section className="px-6 pt-16 pb-10 text-center">
-        <h1 className="text-5xl md:text-6xl font-semibold tracking-tight">
-          SheSafe <span className="text-coral">Travel</span>
+    <main className="min-h-full bg-cream text-navy font-sans antialiased">
+      <header className="border-b border-navy/[0.06]">
+        <div className="px-5 sm:px-8 py-5 max-w-2xl mx-auto flex items-center justify-between gap-4">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-sm font-medium text-navy/70 hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/40 focus-visible:ring-offset-2 focus-visible:ring-offset-cream rounded-full px-2 py-1"
+          >
+            <span aria-hidden>←</span> Home
+          </Link>
+          <Link
+            to="/"
+            aria-label="SheSafe Travel — home"
+            className="font-serif font-medium text-xl tracking-tight hover:opacity-80 transition-opacity"
+          >
+            SheSafe<span className="italic text-coral"> Travel</span>
+          </Link>
+        </div>
+      </header>
+
+      <section className="px-5 sm:px-8 pt-12 sm:pt-16 pb-8 max-w-2xl mx-auto text-center">
+        <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-coral mb-5">
+          New trip
+        </p>
+        <h1 className="font-serif font-medium text-4xl sm:text-5xl leading-[1.1] tracking-[-0.015em]">
+          Plan your <span className="italic text-coral">trip</span>
         </h1>
-        <p className="mt-4 text-lg md:text-xl text-navy/80 max-w-xl mx-auto">
-          Don't just travel safe.{' '}
-          <span className="text-coral font-medium">Travel connected.</span>
+        <p className="mt-5 text-base sm:text-lg text-navy/75 leading-relaxed max-w-lg mx-auto">
+          Tell us where you're going and who you want kept in the loop. Setup
+          takes about 90 seconds.
         </p>
       </section>
 
-      <section className="px-6 pb-20">
+      <section className="px-5 sm:px-8 pb-20">
         <form
           onSubmit={handleSubmit}
           className="max-w-2xl mx-auto space-y-8 bg-white rounded-2xl shadow-sm border border-gold/30 p-6 md:p-8"
