@@ -7,6 +7,7 @@ export const config = {
 }
 
 const FIRECRAWL_TIMEOUT_MS = 10_000
+const FIRECRAWL_MAX_CHARS = 4_000
 const CLAUDE_MODEL = 'claude-sonnet-4-6'
 
 interface BriefingRequest {
@@ -92,7 +93,10 @@ async function fetchTravelAdvisory(
     }
 
     const markdown = data?.data?.markdown
-    return typeof markdown === 'string' && markdown.length > 0 ? markdown : null
+    if (typeof markdown !== 'string' || markdown.length === 0) return null
+    return markdown.length > FIRECRAWL_MAX_CHARS
+      ? markdown.slice(0, FIRECRAWL_MAX_CHARS)
+      : markdown
   } catch {
     return null
   } finally {
@@ -168,7 +172,7 @@ export default async function handler(
   try {
     const message = await anthropic.messages.create({
       model: CLAUDE_MODEL,
-      max_tokens: 3072,
+      max_tokens: 2048,
       system: [
         {
           type: 'text',
