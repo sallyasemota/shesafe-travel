@@ -1,11 +1,20 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { useCheckInActions } from '../hooks/useCheckInActions'
+import type { VisualStatus } from '../lib/tripStatus'
 import type { Trip } from '../types/trip'
 
 const PRESETS = [1, 2, 4, 8] as const
 
-export function CheckInTimer({ trip }: { trip: Trip }) {
+export function CheckInTimer({
+  trip,
+  visualStatus,
+}: {
+  trip: Trip
+  visualStatus: VisualStatus
+}) {
   const isActive = trip.check_in_status === 'active'
+  const isWarning = visualStatus === 'yellow'
+  const actions = useCheckInActions(trip)
 
   const [preset, setPreset] = useState<number | 'custom'>(2)
   const [customHours, setCustomHours] = useState('3')
@@ -21,109 +30,33 @@ export function CheckInTimer({ trip }: { trip: Trip }) {
     return preset
   }
 
-  async function startTimer() {
+  const wrap = (label: string, fn: () => Promise<void>) => async () => {
+    setError(null)
+    setSubmitting(true)
+    try {
+      await fn()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : `Could not ${label}.`)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const startTimer = wrap('start timer', async () => {
     const hours = selectedHours()
     if (!hours) {
-      setError('Pick a duration first.')
-      return
+      throw new Error('Pick a duration first.')
     }
-    setError(null)
-    setSubmitting(true)
-    try {
-      const now = new Date()
-      const expiresAt = new Date(now.getTime() + hours * 3_600_000)
-      const { error } = await supabase
-        .from('trips')
-        .update({
-          check_in_status: 'active',
-          last_check_in: now.toISOString(),
-          timer_expires_at: expiresAt.toISOString(),
-        })
-        .eq('id', trip.id)
-      if (error) throw error
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not start timer.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
+    await actions.startTimer(hours)
+  })
 
-  async function checkIn() {
-    setError(null)
-    setSubmitting(true)
-    try {
-      const now = new Date()
-      await supabase.from('check_ins').insert({
-        trip_id: trip.id,
-        status: 'safe',
-        message: message.trim() || null,
-      })
+  const checkIn = wrap('check in', async () => {
+    await actions.checkIn(message)
+    setMessage('')
+  })
 
-      // Reset timer to its original duration
-      const lastMs = trip.last_check_in
-        ? new Date(trip.last_check_in).getTime()
-        : now.getTime()
-      const expiresMs = trip.timer_expires_at
-        ? new Date(trip.timer_expires_at).getTime()
-        : now.getTime() + 2 * 3_600_000
-      const durationMs = Math.max(expiresMs - lastMs, 60_000)
-      const newExpires = new Date(now.getTime() + durationMs)
-
-      const { error } = await supabase
-        .from('trips')
-        .update({
-          check_in_status: 'active',
-          last_check_in: now.toISOString(),
-          timer_expires_at: newExpires.toISOString(),
-        })
-        .eq('id', trip.id)
-      if (error) throw error
-      setMessage('')
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not check in.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  async function addOneHour() {
-    if (!trip.timer_expires_at) return
-    setError(null)
-    setSubmitting(true)
-    try {
-      const newExpires = new Date(
-        new Date(trip.timer_expires_at).getTime() + 3_600_000,
-      )
-      const { error } = await supabase
-        .from('trips')
-        .update({ timer_expires_at: newExpires.toISOString() })
-        .eq('id', trip.id)
-      if (error) throw error
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not extend timer.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  async function stopTimer() {
-    setError(null)
-    setSubmitting(true)
-    try {
-      const { error } = await supabase
-        .from('trips')
-        .update({
-          check_in_status: 'inactive',
-          timer_expires_at: null,
-        })
-        .eq('id', trip.id)
-      if (error) throw error
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not stop timer.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
+  const addOneHour = wrap('extend timer', actions.addOneHour)
+  const stopTimer = wrap('stop timer', actions.stopTimer)
 
   if (isActive) {
     return (
@@ -146,33 +79,69 @@ export function CheckInTimer({ trip }: { trip: Trip }) {
           />
         </div>
 
-        <button
-          type="button"
-          onClick={checkIn}
-          disabled={submitting}
-          className="w-full inline-flex items-center justify-center px-6 py-4 rounded-full bg-coral text-cream font-bold text-lg shadow hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
-        >
-          {submitting ? 'Saving…' : "I'm safe — check in"}
-        </button>
-
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={addOneHour}
-            disabled={submitting}
-            className="rounded-full bg-white text-navy border border-navy/20 font-medium px-4 py-2 hover:bg-navy/5 transition disabled:opacity-50"
-          >
-            +1 hour
-          </button>
-          <button
-            type="button"
-            onClick={stopTimer}
-            disabled={submitting}
-            className="rounded-full bg-white text-navy/70 border border-navy/15 font-medium px-4 py-2 hover:bg-navy/5 transition disabled:opacity-50"
-          >
-            Stop timer
-          </button>
-        </div>
+        {isWarning ? (
+          <>
+            <button
+              type="button"
+              onClick={addOneHour}
+              disabled={submitting}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-5 rounded-full bg-yellow-400 text-navy font-bold text-lg shadow-md hover:bg-yellow-500 active:scale-[0.98] transition disabled:opacity-50"
+            >
+              <span aria-hidden>⏰</span>
+              {submitting ? 'Adding…' : 'Add 1 hour'}
+            </button>
+            <button
+              type="button"
+              onClick={checkIn}
+              disabled={submitting}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-coral text-cream font-semibold shadow hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+            >
+              <span aria-hidden>✓</span>
+              {submitting ? 'Saving…' : "I'm safe — check in"}
+            </button>
+            <button
+              type="button"
+              onClick={stopTimer}
+              disabled={submitting}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-white text-navy/70 border border-navy/15 font-medium px-4 py-2 hover:bg-navy/5 transition disabled:opacity-50"
+            >
+              <span aria-hidden>⏹</span>
+              Stop timer
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={checkIn}
+              disabled={submitting}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-coral text-cream font-bold text-lg shadow hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
+            >
+              <span aria-hidden>✓</span>
+              {submitting ? 'Saving…' : "I'm safe — check in"}
+            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={addOneHour}
+                disabled={submitting}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white text-navy border border-navy/20 font-medium px-4 py-2 hover:bg-navy/5 transition disabled:opacity-50"
+              >
+                <span aria-hidden>⏰</span>
+                Add 1 hour
+              </button>
+              <button
+                type="button"
+                onClick={stopTimer}
+                disabled={submitting}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white text-navy/70 border border-navy/15 font-medium px-4 py-2 hover:bg-navy/5 transition disabled:opacity-50"
+              >
+                <span aria-hidden>⏹</span>
+                Stop timer
+              </button>
+            </div>
+          </>
+        )}
 
         {error && (
           <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">

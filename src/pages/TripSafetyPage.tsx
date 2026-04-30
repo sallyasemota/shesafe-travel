@@ -1,13 +1,18 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { BriefingSection } from '../components/BriefingSection'
+import { CheckInHistoryList } from '../components/CheckInHistoryList'
 import { CheckInTimer } from '../components/CheckInTimer'
+import { CheckInWarningOverlay } from '../components/CheckInWarningOverlay'
 import { TripStatusDisplay } from '../components/TripStatusDisplay'
+import { useCheckInActions } from '../hooks/useCheckInActions'
 import { useCheckInHistory } from '../hooks/useCheckInHistory'
 import { useNow } from '../hooks/useNow'
 import { useRealtimeTrip } from '../hooks/useRealtimeTrip'
 import { supabase } from '../lib/supabase'
 import {
   computeVisualStatus,
+  formatRelative,
   type VisualStatus,
 } from '../lib/tripStatus'
 import type {
@@ -81,12 +86,33 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
   const now = useNow(1000)
   const visualStatus = computeVisualStatus(trip, now)
   const checkIns = useCheckInHistory(trip.id)
+  const actions = useCheckInActions(trip)
+
+  const [warningDismissed, setWarningDismissed] = useState(false)
+  const previousStatusRef = useRef<VisualStatus>(visualStatus)
+  useEffect(() => {
+    const previous = previousStatusRef.current
+    if (previous !== 'yellow' && visualStatus === 'yellow') {
+      setWarningDismissed(false)
+    }
+    if (visualStatus !== 'yellow') {
+      setWarningDismissed(false)
+    }
+    previousStatusRef.current = visualStatus
+  }, [visualStatus])
+
+  const showWarningOverlay =
+    traveler &&
+    visualStatus === 'yellow' &&
+    !warningDismissed &&
+    !!trip.timer_expires_at
 
   const contacts = (trip.emergency_contacts ?? []).filter(
     (c): c is EmergencyContact => Boolean(c?.name && c?.phone),
   )
 
   const isAlert = visualStatus === 'red'
+  const lastCheckIn = checkIns[0]
 
   const handleRefreshBriefing = async () => {
     await supabase
@@ -140,11 +166,18 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
           <>
             <div className="rounded-2xl bg-red-600 text-white p-5 text-center shadow-lg">
               <p className="text-xs uppercase tracking-widest font-bold">
-                Emergency
+                ⚠ Emergency
               </p>
               <h2 className="text-xl sm:text-2xl font-bold mt-1 animate-pulse">
-                {trip.traveler_name} has missed her check-in
+                {trip.traveler_name} has not checked in
               </h2>
+              <p className="text-sm mt-1 opacity-95">
+                {lastCheckIn
+                  ? `Last check-in: ${formatRelative(lastCheckIn.created_at, now)}`
+                  : trip.last_check_in
+                    ? `Timer started: ${formatRelative(trip.last_check_in, now)}`
+                    : 'No previous check-in on record'}
+              </p>
               <p className="text-sm mt-2 opacity-90">
                 Try calling now. If you can't reach her, the info below can
                 help responders.
@@ -163,7 +196,14 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
 
         {traveler && (
           <Section title="Your check-in timer">
-            <CheckInTimer trip={trip} />
+            <CheckInTimer trip={trip} visualStatus={visualStatus} />
+          </Section>
+        )}
+
+        {(checkIns.length > 0 ||
+          trip.check_in_status === 'active') && (
+          <Section title="Check-in history">
+            <CheckInHistoryList checkIns={checkIns} />
           </Section>
         )}
 
@@ -213,6 +253,15 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         </p>
         <p className="text-xs text-navy/50">This page updates in real-time.</p>
       </footer>
+
+      {showWarningOverlay && trip.timer_expires_at && (
+        <CheckInWarningOverlay
+          expiresAtIso={trip.timer_expires_at}
+          onCheckIn={() => actions.checkIn()}
+          onAddHour={() => actions.addOneHour()}
+          onDismiss={() => setWarningDismissed(true)}
+        />
+      )}
     </main>
   )
 }

@@ -12,7 +12,6 @@ type ActiveStatus = Exclude<VisualStatus, 'inactive'>
 const STATUS_STYLES: Record<
   ActiveStatus,
   {
-    label: string
     badge: string
     dot: string
     ring: string
@@ -20,33 +19,69 @@ const STATUS_STYLES: Record<
   }
 > = {
   green: {
-    label: 'On track',
     badge: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     dot: 'bg-emerald-500',
     ring: 'bg-emerald-400',
     countdown: 'text-navy',
   },
   yellow: {
-    label: 'Check in soon',
     badge: 'bg-yellow-100 text-yellow-800 border-yellow-300',
     dot: 'bg-yellow-500',
     ring: 'bg-yellow-400',
     countdown: 'text-yellow-800',
   },
   orange: {
-    label: 'Overdue',
     badge: 'bg-orange-100 text-orange-800 border-orange-400',
     dot: 'bg-orange-500',
     ring: 'bg-orange-400',
     countdown: 'text-orange-700',
   },
   red: {
-    label: 'ALERT',
     badge: 'bg-red-100 text-red-800 border-red-400',
     dot: 'bg-red-600',
     ring: 'bg-red-500',
     countdown: 'text-red-700',
   },
+}
+
+function statusLabel(
+  status: ActiveStatus,
+  expiresMs: number,
+  nowMs: number,
+  lastCheckInIso: string | null,
+): string {
+  const remainingMs = expiresMs - nowMs
+  const overdueMs = nowMs - expiresMs
+
+  const minsFromMs = (ms: number) => Math.max(1, Math.floor(ms / 60_000))
+
+  switch (status) {
+    case 'green': {
+      if (lastCheckInIso) {
+        const since = nowMs - new Date(lastCheckInIso).getTime()
+        const mins = minsFromMs(since)
+        return mins === 1 ? 'Checked in 1 min ago' : `Checked in ${mins} min ago`
+      }
+      return 'Timer running'
+    }
+    case 'yellow': {
+      const mins = Math.floor(remainingMs / 60_000)
+      const secs = Math.floor((remainingMs % 60_000) / 1000)
+      return `Timer running — ${mins}:${secs.toString().padStart(2, '0')} remaining`
+    }
+    case 'orange': {
+      const mins = minsFromMs(overdueMs)
+      return mins === 1
+        ? 'Check-in overdue by 1 min'
+        : `Check-in overdue by ${mins} min`
+    }
+    case 'red': {
+      const mins = minsFromMs(overdueMs)
+      return mins === 1
+        ? 'ALERT — No check-in for 1 min'
+        : `ALERT — No check-in for ${mins} min`
+    }
+  }
 }
 
 export function TripStatusDisplay({
@@ -103,7 +138,7 @@ export function TripStatusDisplay({
           <span
             className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold ${style.badge}`}
           >
-            {style.label}
+            {statusLabel(status, expiresMs, now, trip.last_check_in)}
           </span>
         </div>
       </div>
@@ -145,6 +180,15 @@ export function TripStatusDisplay({
           <>Timer started: {formatRelative(trip.last_check_in, now)}</>
         ) : null}
       </p>
+
+      {(status === 'orange' || status === 'red') && checkIns.length > 0 && (
+        <p className="text-xs text-navy/70 text-center bg-white/60 rounded-lg px-3 py-2 italic">
+          {checkIns.length === 1
+            ? `${trip.traveler_name} has checked in 1 time on this trip`
+            : `${trip.traveler_name} has checked in ${checkIns.length} times on this trip`}
+          {checkIns.length >= 3 && '. This is her first missed check-in.'}
+        </p>
+      )}
     </div>
   )
 }
