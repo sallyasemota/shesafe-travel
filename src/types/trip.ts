@@ -17,16 +17,42 @@ export interface PassportInfo {
   expiry_date?: string
 }
 
+export type RiskLevel = 'Low' | 'Moderate' | 'Elevated' | 'High'
+
+export interface BriefingEmergencyContacts {
+  police?: string
+  ambulance?: string
+  fire?: string
+  us_embassy?: string
+  womens_crisis_line?: string
+}
+
+export interface BriefingSections {
+  safety_overview?: string
+  cultural_norms_for_women?: string
+  harassment_and_scam_patterns?: string
+  transport_safety?: string
+  safe_areas?: string
+  emergency_contacts?: BriefingEmergencyContacts
+  health_and_medical?: string
+  communication?: string
+  what_to_wear?: string
+  solo_dining_and_nightlife?: string
+}
+
+export interface BriefingPhrase {
+  local: string
+  english: string
+}
+
 export interface BriefingData {
-  summary?: string
-  safety_notes?: string[]
-  embassy?: {
-    name?: string
-    phone?: string
-    address?: string
-  }
-  emergency_numbers?: Record<string, string>
-  [key: string]: unknown
+  overall_risk_level?: RiskLevel
+  risk_score?: number
+  last_updated?: string
+  sections?: BriefingSections
+  top_3_tips?: string[]
+  phrases_to_know?: BriefingPhrase[]
+  data_source?: 'live' | 'ai_knowledge'
 }
 
 export type CheckInStatus = 'inactive' | 'active' | 'overdue' | 'alert'
