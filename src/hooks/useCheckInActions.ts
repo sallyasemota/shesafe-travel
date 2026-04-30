@@ -6,6 +6,11 @@ export interface CheckInActions {
   checkIn: (message?: string | null) => Promise<void>
   addOneHour: () => Promise<void>
   stopTimer: () => Promise<void>
+  /**
+   * Demo-only: directly set the timer window (last_check_in + timer_expires_at)
+   * to simulate any visual status without waiting for time to pass.
+   */
+  setTimerWindow: (startedAt: Date, expiresAt: Date) => Promise<void>
 }
 
 export function useCheckInActions(trip: Trip): CheckInActions {
@@ -74,5 +79,17 @@ export function useCheckInActions(trip: Trip): CheckInActions {
     if (error) throw error
   }
 
-  return { startTimer, checkIn, addOneHour, stopTimer }
+  async function setTimerWindow(startedAt: Date, expiresAt: Date) {
+    const { error } = await supabase
+      .from('trips')
+      .update({
+        check_in_status: 'active',
+        last_check_in: startedAt.toISOString(),
+        timer_expires_at: expiresAt.toISOString(),
+      })
+      .eq('id', trip.id)
+    if (error) throw error
+  }
+
+  return { startTimer, checkIn, addOneHour, stopTimer, setTimerWindow }
 }

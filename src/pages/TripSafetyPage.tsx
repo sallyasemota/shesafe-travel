@@ -4,6 +4,7 @@ import { BriefingSection } from '../components/BriefingSection'
 import { CheckInHistoryList } from '../components/CheckInHistoryList'
 import { CheckInTimer } from '../components/CheckInTimer'
 import { CheckInWarningOverlay } from '../components/CheckInWarningOverlay'
+import { DemoBanner } from '../components/DemoBanner'
 import { EmergencyActions } from '../components/EmergencyActions'
 import { PDFDownloads } from '../components/PDFDownloads'
 import { ShareButton } from '../components/ShareButton'
@@ -134,6 +135,8 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         isAlert ? 'bg-red-50' : 'bg-cream'
       }`}
     >
+      {trip.share_code === 'marrakech-demo' && <DemoBanner trip={trip} />}
+
       <header className="px-5 pt-8 pb-6 max-w-2xl mx-auto">
         <Link
           to="/"
