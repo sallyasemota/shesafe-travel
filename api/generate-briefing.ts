@@ -204,7 +204,12 @@ export default async function handler(
     const jsonEnd = text.lastIndexOf('}')
 
     if (jsonStart < 0 || jsonEnd <= jsonStart) {
-      throw new Error('Model response did not contain a JSON object')
+      console.error(
+        `[briefing] no JSON in response. stop=${message.stop_reason} len=${text.length} preview=${JSON.stringify(text.slice(0, 300))}`,
+      )
+      throw new Error(
+        `Model response did not contain a JSON object (stop=${message.stop_reason}, len=${text.length})`,
+      )
     }
 
     briefing = JSON.parse(text.slice(jsonStart, jsonEnd + 1)) as Record<
