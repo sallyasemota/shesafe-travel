@@ -8,7 +8,7 @@ export const config = {
 
 const FIRECRAWL_TIMEOUT_MS = 10_000
 const FIRECRAWL_MAX_CHARS = 4_000
-const CLAUDE_MODEL = 'claude-sonnet-4-6'
+const CLAUDE_MODEL = 'claude-sonnet-4-20250514'
 
 interface BriefingRequest {
   shareCode: string
@@ -159,17 +159,10 @@ export default async function handler(
     return
   }
 
-  const t0 = Date.now()
-
   let liveData: string | null = null
   if (firecrawlKey) {
     liveData = await fetchTravelAdvisory(destinationCountry, firecrawlKey)
   }
-
-  const tFirecrawl = Date.now()
-  console.log(
-    `[briefing] firecrawl ${tFirecrawl - t0}ms (live=${liveData !== null})`,
-  )
 
   const anthropic = new Anthropic({ apiKey: anthropicKey })
 
@@ -222,11 +215,6 @@ export default async function handler(
       unknown
     >
     briefing.data_source = liveData ? 'live' : 'ai_knowledge'
-
-    const tClaude = Date.now()
-    console.log(
-      `[briefing] claude ${tClaude - tFirecrawl}ms (in=${message.usage.input_tokens}, out=${message.usage.output_tokens})`,
-    )
   } catch (err) {
     res.status(500).json({
       success: false,

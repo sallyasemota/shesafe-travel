@@ -1,73 +1,140 @@
-# React + TypeScript + Vite
+# SheSafe Travel
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> AI-powered travel safety companion for women — real-time briefings, check-in tracking, and emergency coordination via a single shareable link.
 
-Currently, two official plugins are available:
+**Live demo:** https://shesafe-travel.vercel.app
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Pre-loaded demo trip:** https://shesafe-travel.vercel.app/trip/marrakech-demo
 
-## React Compiler
+**Built for:** Women Build AI Build-A-Thon 2026
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Tech stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend:** React + Vite + TypeScript + Tailwind CSS
+- **Database:** Supabase (PostgreSQL + Realtime subscriptions)
+- **AI:** Claude API (`claude-sonnet-4-20250514`) via Vercel serverless functions
+- **Live data:** Firecrawl (scrapes US State Department travel advisories, with fallback to Claude-only when unavailable)
+- **PDF generation:** jsPDF (client-side, lazy-loaded)
+- **Hosting:** Vercel (frontend + serverless functions)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Features
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+There are exactly four. Everything in the app exists to serve one of these.
+
+### 1. Shareable Trip Safety Page
+
+Every trip lives at a unique URL like `/trip/abc12345`. Anyone with the link sees the full live page — no login, no install, no code to enter. A traveler taps **↗ Send to contacts** in the page header and her share sheet (iMessage, WhatsApp, etc.) sends the URL to mom. Mom taps it and the page opens with a live countdown, status badge, AI briefing, and emergency call buttons that auto-update via Supabase Realtime.
+
+### 2. AI Safety Briefing
+
+For each destination, a Claude-powered briefing covers ten sections specific to women travelers: safety overview, cultural norms, harassment & scam patterns, transport, safe areas, local emergency contacts, health & medical, communication, what to wear, and solo dining/nightlife. Plus a top-3-tips callout, a 4-phrase local-language sheet, and a color-coded risk badge (Low / Moderate / Elevated / High).
+
+The briefing engine tries Firecrawl first to scrape the current State Department travel advisory; if that fails (timeout, page missing, etc.), the function falls back to Claude's training data. The page shows a green "Live advisory data" badge or a gold "AI knowledge" badge so viewers know the source.
+
+Briefings are generated server-side by a Vercel function and delivered via Realtime — the create-trip page redirects immediately and the briefing appears in place ~30 seconds later without a page refresh.
+
+### 3. Check-In Timer with Escalation
+
+The traveler picks a duration — 1h / 2h / 4h / 8h, custom hours, or **30s / 1m demo presets** for showing the cascade quickly. Every viewer of the shared page watches the same live countdown tick down second-by-second. The status escalates through four colors:
+
+- 🟢 **Green** — on track (most of the timer remaining)
+- 🟡 **Yellow** — check in soon (last 20% of the timer; full-screen overlay + vibration on the traveler's device)
+- 🟠 **Orange** — overdue (timer expired, within grace period)
+- 🔴 **Red** — alert (past grace period; emergency info revealed)
+
+At red, the page background washes red, an animated alert banner moves to the top, urgent full-width red Call buttons replace the normal emergency contact list, and the **"If she's missing"** panel reveals passport number, medical info, hotel address, and the traveler's photo — data that's hidden during normal operation.
+
+The grace period scales with timer duration: production-length timers (≥5 min) keep a 15-minute grace, while short demo timers get a proportional grace (25% of duration, capped at 30s) so the entire cascade can be demoed in ~75 seconds.
+
+### 4. Offline & Emergency PDF Packets
+
+Two downloadable PDFs:
+
+- **Offline Safety Packet** — destination, large-font emergency numbers (18pt), top tips, key local-language phrases, hotel address, your emergency contacts. Designed for printing and pulling out of a pocket at 2 AM in a foreign country.
+- **Emergency "If I Go Missing" Packet** — full traveler name, passport, medical info, hotel, travel dates, local police + embassy with addresses, emergency contacts. Footer reads *"Provide this document to local police and the embassy immediately."* For handing to authorities.
+
+Both are generated client-side with jsPDF (lazy-loaded so the trip page doesn't pay the bundle cost on first paint).
+
+---
+
+## Run locally
+
+```bash
+git clone https://github.com/sallyasemota/shesafe-travel.git
+cd shesafe-travel
+npm install
+cp .env.example .env.local
+# fill in the values in .env.local — see "Environment variables" below
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Then open http://localhost:5173 and create a trip.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Environment variables
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+See [.env.example](./.env.example). Four required:
+
+| Variable                   | Where to get it                                          | Used by              |
+| -------------------------- | -------------------------------------------------------- | -------------------- |
+| `VITE_SUPABASE_URL`        | Supabase → Project Settings → API → Project URL          | Frontend + functions |
+| `VITE_SUPABASE_ANON_KEY`   | Supabase → Project Settings → API → `anon` `public` key  | Frontend + functions |
+| `ANTHROPIC_API_KEY`        | https://console.anthropic.com → Settings → API Keys      | `api/generate-briefing.ts` |
+| `FIRECRAWL_API_KEY`        | https://firecrawl.dev → API Keys                         | `api/generate-briefing.ts` |
+
+### Supabase one-time setup
+
+Two tables (`trips`, `check_ins`) — see the schema reference in [CLAUDE.md](./CLAUDE.md#supabase-schema-reference). After creating them:
+
+1. Enable Realtime on both:
+   ```sql
+   ALTER PUBLICATION supabase_realtime ADD TABLE public.trips;
+   ALTER PUBLICATION supabase_realtime ADD TABLE public.check_ins;
+   ```
+2. Add RLS policies that permit anonymous `INSERT` and `UPDATE` on `trips`, and `INSERT` on `check_ins`.
+
+### Demo data
+
+```bash
+npm run seed
 ```
+
+Creates `/trip/marrakech-demo` with a pre-cached briefing, an active timer (~4-hour countdown remaining), three sample check-ins, and full passport / medical / hotel details so the alert-mode reveal has something to show. Idempotent — safe to re-run.
+
+---
+
+## Deploy
+
+Vercel CLI (one-shot):
+
+```bash
+npx vercel --prod
+```
+
+Set the same four environment variables on the Vercel project (Settings → Environment Variables) before the first deploy.
+
+---
+
+## Scope
+
+Not in scope (intentional non-goals):
+
+- User accounts / authentication
+- Group trip coordination
+- Hotel booking or accommodation analysis
+- Itinerary builder
+- Maps or location tracking
+- Push notifications, SMS, email alerts
+- Payment / subscription
+- Native mobile app
+
+The shared page **is** the notification — mom keeps it open, and the live updates do the work.
+
+---
+
+## License
+
+MIT — built during Women Build AI Build-A-Thon 2026.
