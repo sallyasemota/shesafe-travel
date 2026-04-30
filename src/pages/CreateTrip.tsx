@@ -126,6 +126,12 @@ export default function CreateTrip() {
 
       if (error) throw error
 
+      try {
+        window.localStorage.setItem(`shesafe:traveler:${shareCode}`, '1')
+      } catch {
+        // localStorage unavailable — non-fatal
+      }
+
       void fetch('/api/generate-briefing', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

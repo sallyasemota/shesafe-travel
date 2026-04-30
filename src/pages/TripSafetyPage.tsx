@@ -1,12 +1,23 @@
 import { Link, useParams } from 'react-router-dom'
 import { BriefingSection } from '../components/BriefingSection'
+import { CheckInTimer } from '../components/CheckInTimer'
+import { TripStatusDisplay } from '../components/TripStatusDisplay'
+import { useCheckInHistory } from '../hooks/useCheckInHistory'
+import { useNow } from '../hooks/useNow'
 import { useRealtimeTrip } from '../hooks/useRealtimeTrip'
 import { supabase } from '../lib/supabase'
-import type { EmergencyContact, RiskLevel, Trip } from '../types/trip'
+import {
+  computeVisualStatus,
+  type VisualStatus,
+} from '../lib/tripStatus'
+import type {
+  EmergencyContact,
+  RiskLevel,
+  Trip,
+} from '../types/trip'
 
 function formatDate(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString('en-US', {
+  return new Date(iso).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -18,13 +29,24 @@ function telHref(phone: string): string {
   return `tel:${phone.replace(/[^\d+]/g, '')}`
 }
 
+function isTravelerForCode(shareCode: string | undefined): boolean {
+  if (!shareCode || typeof window === 'undefined') return false
+  try {
+    return window.localStorage.getItem(`shesafe:traveler:${shareCode}`) === '1'
+  } catch {
+    return false
+  }
+}
+
 export default function TripSafetyPage() {
   const { shareCode } = useParams<{ shareCode: string }>()
   const state = useRealtimeTrip(shareCode)
 
   if (state.kind === 'loading') return <Loading />
   if (state.kind === 'not-found') return <NotFound />
-  return <TripView trip={state.trip} />
+  return (
+    <TripView trip={state.trip} traveler={isTravelerForCode(shareCode)} />
+  )
 }
 
 function Loading() {
@@ -55,10 +77,16 @@ function NotFound() {
   )
 }
 
-function TripView({ trip }: { trip: Trip }) {
+function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
+  const now = useNow(1000)
+  const visualStatus = computeVisualStatus(trip, now)
+  const checkIns = useCheckInHistory(trip.id)
+
   const contacts = (trip.emergency_contacts ?? []).filter(
     (c): c is EmergencyContact => Boolean(c?.name && c?.phone),
   )
+
+  const isAlert = visualStatus === 'red'
 
   const handleRefreshBriefing = async () => {
     await supabase
@@ -80,7 +108,11 @@ function TripView({ trip }: { trip: Trip }) {
   }
 
   return (
-    <main className="min-h-full bg-cream text-navy">
+    <main
+      className={`min-h-full text-navy transition-colors duration-500 ${
+        isAlert ? 'bg-red-50' : 'bg-cream'
+      }`}
+    >
       <header className="px-5 pt-8 pb-6 max-w-2xl mx-auto">
         <p className="text-xs uppercase tracking-widest text-coral font-semibold">
           SheSafe Travel
@@ -96,7 +128,7 @@ function TripView({ trip }: { trip: Trip }) {
           {formatDate(trip.travel_dates_end)}
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <StatusBadge />
+          <StatusBadge visualStatus={visualStatus} />
           {trip.briefing_data?.overall_risk_level && (
             <RiskBadge level={trip.briefing_data.overall_risk_level} />
           )}
@@ -104,14 +136,45 @@ function TripView({ trip }: { trip: Trip }) {
       </header>
 
       <div className="px-5 pb-12 max-w-2xl mx-auto space-y-5">
-        {contacts.length > 0 && (
+        {isAlert && (
+          <>
+            <div className="rounded-2xl bg-red-600 text-white p-5 text-center shadow-lg">
+              <p className="text-xs uppercase tracking-widest font-bold">
+                Emergency
+              </p>
+              <h2 className="text-xl sm:text-2xl font-bold mt-1 animate-pulse">
+                {trip.traveler_name} has missed her check-in
+              </h2>
+              <p className="text-sm mt-2 opacity-90">
+                Try calling now. If you can't reach her, the info below can
+                help responders.
+              </p>
+            </div>
+
+            <UrgentEmergencyContactsCard
+              contacts={contacts}
+              travelerPhone={trip.traveler_phone}
+            />
+            <IfIGoMissing trip={trip} />
+          </>
+        )}
+
+        <TripStatusDisplay trip={trip} checkIns={checkIns} />
+
+        {traveler && (
+          <Section title="Your check-in timer">
+            <CheckInTimer trip={trip} />
+          </Section>
+        )}
+
+        {!isAlert && contacts.length > 0 && (
           <Section title="Your emergency contacts">
             <ul className="space-y-3">
               {contacts.map((c, i) => (
                 <li key={i}>
                   <a
                     href={telHref(c.phone)}
-                    className="flex items-center justify-between gap-3 rounded-xl bg-white border border-gold/40 px-4 py-4 shadow-sm active:scale-[0.99] transition"
+                    className="flex items-center justify-between gap-3 rounded-xl bg-cream/40 border border-gold/40 px-4 py-4 active:scale-[0.99] transition"
                   >
                     <div className="min-w-0">
                       <p className="font-semibold text-lg truncate">
@@ -142,10 +205,6 @@ function TripView({ trip }: { trip: Trip }) {
             onRefresh={handleRefreshBriefing}
           />
         </Section>
-
-        <Section title="Check-in status">
-          <p className="text-navy/60 italic">Check-in feature coming soon.</p>
-        </Section>
       </div>
 
       <footer className="px-5 pb-10 max-w-2xl mx-auto text-center space-y-1">
@@ -158,11 +217,53 @@ function TripView({ trip }: { trip: Trip }) {
   )
 }
 
-function StatusBadge() {
+const STATUS_BADGE_STYLES: Record<
+  VisualStatus,
+  { label: string; wrap: string; dot: string; pulse: boolean }
+> = {
+  inactive: {
+    label: 'Planning',
+    wrap: 'bg-gold/30 border-gold text-navy',
+    dot: 'bg-gold',
+    pulse: false,
+  },
+  green: {
+    label: 'On track',
+    wrap: 'bg-emerald-100 border-emerald-300 text-emerald-800',
+    dot: 'bg-emerald-500',
+    pulse: true,
+  },
+  yellow: {
+    label: 'Check in soon',
+    wrap: 'bg-yellow-100 border-yellow-300 text-yellow-800',
+    dot: 'bg-yellow-500',
+    pulse: true,
+  },
+  orange: {
+    label: 'Overdue',
+    wrap: 'bg-orange-100 border-orange-400 text-orange-800',
+    dot: 'bg-orange-500',
+    pulse: true,
+  },
+  red: {
+    label: 'ALERT',
+    wrap: 'bg-red-100 border-red-400 text-red-800',
+    dot: 'bg-red-600',
+    pulse: true,
+  },
+}
+
+function StatusBadge({ visualStatus }: { visualStatus: VisualStatus }) {
+  const s = STATUS_BADGE_STYLES[visualStatus]
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-gold/30 border border-gold px-3 py-1 text-sm font-medium text-navy">
-      <span className="h-2 w-2 rounded-full bg-gold" aria-hidden />
-      Planning
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium ${s.wrap}`}
+    >
+      <span
+        className={`h-2 w-2 rounded-full ${s.dot} ${s.pulse ? 'animate-pulse' : ''}`}
+        aria-hidden
+      />
+      {s.label}
     </span>
   )
 }
@@ -212,5 +313,167 @@ function Section({
       </h2>
       {children}
     </section>
+  )
+}
+
+function UrgentEmergencyContactsCard({
+  contacts,
+  travelerPhone,
+}: {
+  contacts: EmergencyContact[]
+  travelerPhone: string | null
+}) {
+  if (contacts.length === 0 && !travelerPhone) return null
+  return (
+    <div className="rounded-2xl bg-white border-2 border-red-400 shadow-lg p-5 space-y-3">
+      <h3 className="text-lg font-bold text-red-700">
+        Call for help — now
+      </h3>
+      <ul className="space-y-3">
+        {contacts.map((c, i) => (
+          <li key={i}>
+            <a
+              href={telHref(c.phone)}
+              className="flex items-center justify-between gap-3 rounded-xl bg-red-600 text-white px-4 py-5 shadow hover:bg-red-700 active:scale-[0.99] transition"
+            >
+              <div className="min-w-0">
+                <p className="text-base sm:text-lg font-bold truncate">
+                  {c.name}
+                </p>
+                <p className="text-sm opacity-90 truncate">
+                  {c.relationship} — {c.phone}
+                </p>
+              </div>
+              <span className="shrink-0 text-base sm:text-lg font-bold">
+                📞 CALL
+              </span>
+            </a>
+          </li>
+        ))}
+        {travelerPhone && (
+          <li>
+            <a
+              href={telHref(travelerPhone)}
+              className="flex items-center justify-between gap-3 rounded-xl bg-white text-red-700 border-2 border-red-400 px-4 py-4 hover:bg-red-50 active:scale-[0.99] transition"
+            >
+              <div className="min-w-0">
+                <p className="text-base font-semibold">
+                  Call traveler directly
+                </p>
+                <p className="text-sm">{travelerPhone}</p>
+              </div>
+              <span className="shrink-0 text-lg font-bold">📞</span>
+            </a>
+          </li>
+        )}
+      </ul>
+    </div>
+  )
+}
+
+function IfIGoMissing({ trip }: { trip: Trip }) {
+  const passport = trip.passport_info
+  const medical = trip.medical_info
+  const photo = trip.traveler_photo_url
+
+  return (
+    <div className="rounded-2xl bg-white border-2 border-red-300 shadow-md p-5 space-y-4">
+      <div>
+        <h3 className="text-lg font-bold text-red-700">If she's missing</h3>
+        <p className="text-xs text-red-700/70 italic mt-1">
+          Revealed because the check-in alert was triggered. Share with police
+          or local responders.
+        </p>
+      </div>
+
+      {photo && (
+        <div>
+          <p className="text-xs uppercase font-semibold text-red-700 mb-2">
+            Traveler photo
+          </p>
+          <img
+            src={photo}
+            alt={trip.traveler_name}
+            className="rounded-xl max-w-full max-h-72 border border-red-200"
+          />
+        </div>
+      )}
+
+      {passport && (passport.number || passport.issuing_country) && (
+        <div>
+          <p className="text-xs uppercase font-semibold text-red-700 mb-2">
+            Passport
+          </p>
+          <ul className="text-sm text-red-900 space-y-1">
+            {passport.number && (
+              <li>
+                <span className="font-semibold">Number:</span> {passport.number}
+              </li>
+            )}
+            {passport.issuing_country && (
+              <li>
+                <span className="font-semibold">Issued by:</span>{' '}
+                {passport.issuing_country}
+              </li>
+            )}
+            {passport.expiry_date && (
+              <li>
+                <span className="font-semibold">Expires:</span>{' '}
+                {passport.expiry_date}
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+
+      {medical &&
+        (medical.blood_type ||
+          (medical.allergies && medical.allergies.length > 0) ||
+          (medical.medications && medical.medications.length > 0) ||
+          (medical.conditions && medical.conditions.length > 0)) && (
+          <div>
+            <p className="text-xs uppercase font-semibold text-red-700 mb-2">
+              Medical
+            </p>
+            <ul className="text-sm text-red-900 space-y-1">
+              {medical.blood_type && (
+                <li>
+                  <span className="font-semibold">Blood type:</span>{' '}
+                  {medical.blood_type}
+                </li>
+              )}
+              {medical.allergies && medical.allergies.length > 0 && (
+                <li>
+                  <span className="font-semibold">Allergies:</span>{' '}
+                  {medical.allergies.join(', ')}
+                </li>
+              )}
+              {medical.medications && medical.medications.length > 0 && (
+                <li>
+                  <span className="font-semibold">Medications:</span>{' '}
+                  {medical.medications.join(', ')}
+                </li>
+              )}
+              {medical.conditions && medical.conditions.length > 0 && (
+                <li>
+                  <span className="font-semibold">Conditions:</span>{' '}
+                  {medical.conditions.join(', ')}
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+
+      {trip.traveler_phone && (
+        <div>
+          <p className="text-xs uppercase font-semibold text-red-700 mb-2">
+            Traveler's phone
+          </p>
+          <p className="text-sm text-red-900 font-medium">
+            {trip.traveler_phone}
+          </p>
+        </div>
+      )}
+    </div>
   )
 }
