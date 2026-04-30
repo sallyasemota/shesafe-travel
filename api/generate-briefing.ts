@@ -7,7 +7,7 @@ export const config = {
 }
 
 const FIRECRAWL_TIMEOUT_MS = 10_000
-const CLAUDE_MODEL = 'claude-opus-4-7'
+const CLAUDE_MODEL = 'claude-sonnet-4-6'
 
 interface BriefingRequest {
   shareCode: string
