@@ -125,6 +125,19 @@ export default function CreateTrip() {
       })
 
       if (error) throw error
+
+      void fetch('/api/generate-briefing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shareCode,
+          destinationCity: city.trim(),
+          destinationCountry: country.trim(),
+          travelDatesStart: startDate,
+          travelDatesEnd: endDate,
+        }),
+      }).catch(() => {})
+
       navigate(`/trip/${shareCode}`)
     } catch (err) {
       setErrorMsg(

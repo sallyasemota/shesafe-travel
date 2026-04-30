@@ -1,0 +1,250 @@
+import Anthropic from '@anthropic-ai/sdk'
+import { createClient } from '@supabase/supabase-js'
+
+export const config = {
+  maxDuration: 30,
+}
+
+const FIRECRAWL_TIMEOUT_MS = 10_000
+const CLAUDE_MODEL = 'claude-opus-4-7'
+
+interface BriefingRequest {
+  shareCode: string
+  destinationCity: string
+  destinationCountry: string
+  travelDatesStart: string
+  travelDatesEnd: string
+}
+
+const STABLE_SYSTEM_PROMPT = `You are SheSafe Travel's AI safety advisor for women travelers. Generate a comprehensive, actionable safety briefing specifically for women traveling to the given destination.
+
+Return a JSON object with this EXACT structure:
+
+{
+  "overall_risk_level": "Low" | "Moderate" | "Elevated" | "High",
+  "risk_score": 1-5,
+  "last_updated": "current date",
+  "sections": {
+    "safety_overview": "2-3 paragraphs",
+    "cultural_norms_for_women": "specific dress codes, behavior, gender dynamics",
+    "harassment_and_scam_patterns": "specific scams at THIS destination, how to respond",
+    "transport_safety": "safe transport options, what to avoid, apps to use",
+    "safe_areas": "specific neighborhoods, areas to avoid at night",
+    "emergency_contacts": {
+      "police": "number",
+      "ambulance": "number",
+      "fire": "number",
+      "us_embassy": "full info",
+      "womens_crisis_line": "if available"
+    },
+    "health_and_medical": "hospitals, pharmacies, vaccinations",
+    "communication": "SIM cards, apps, useful phrases in local language",
+    "what_to_wear": "practical clothing advice for safety and culture",
+    "solo_dining_and_nightlife": "safe restaurants, bars, what to avoid"
+  },
+  "top_3_tips": ["tip1", "tip2", "tip3"],
+  "phrases_to_know": [{"local": "phrase", "english": "meaning"}],
+  "data_source": "live" | "ai_knowledge"
+}
+
+Be SPECIFIC to the destination — no generic advice. Every tip should mention specific streets, neighborhoods, apps, or customs.
+
+Output ONLY the JSON object — no preamble, no markdown fences.`
+
+function countrySlug(country: string): string {
+  return country
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+}
+
+async function fetchTravelAdvisory(
+  country: string,
+  apiKey: string,
+): Promise<string | null> {
+  const advisoryUrl = `https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories/${countrySlug(country)}-travel-advisory.html`
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), FIRECRAWL_TIMEOUT_MS)
+
+  try {
+    const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        url: advisoryUrl,
+        formats: ['markdown'],
+        onlyMainContent: true,
+      }),
+      signal: controller.signal,
+    })
+
+    if (!res.ok) return null
+
+    const data = (await res.json()) as {
+      success?: boolean
+      data?: { markdown?: string }
+    }
+
+    const markdown = data?.data?.markdown
+    return typeof markdown === 'string' && markdown.length > 0 ? markdown : null
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+export default async function handler(req: Request): Promise<Response> {
+  if (req.method !== 'POST') {
+    return jsonResponse(
+      { success: false, error: 'Method not allowed' },
+      405,
+    )
+  }
+
+  const anthropicKey = process.env.ANTHROPIC_API_KEY
+  const firecrawlKey = process.env.FIRECRAWL_API_KEY
+  const supabaseUrl = process.env.VITE_SUPABASE_URL
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
+
+  if (!anthropicKey || !supabaseUrl || !supabaseKey) {
+    return jsonResponse(
+      { success: false, error: 'Server is missing required environment variables' },
+      500,
+    )
+  }
+
+  let body: BriefingRequest
+  try {
+    body = (await req.json()) as BriefingRequest
+  } catch {
+    return jsonResponse({ success: false, error: 'Invalid JSON body' }, 400)
+  }
+
+  const {
+    shareCode,
+    destinationCity,
+    destinationCountry,
+    travelDatesStart,
+    travelDatesEnd,
+  } = body
+
+  if (
+    !shareCode ||
+    !destinationCity ||
+    !destinationCountry ||
+    !travelDatesStart ||
+    !travelDatesEnd
+  ) {
+    return jsonResponse(
+      {
+        success: false,
+        error:
+          'Missing required fields: shareCode, destinationCity, destinationCountry, travelDatesStart, travelDatesEnd',
+      },
+      400,
+    )
+  }
+
+  let liveData: string | null = null
+  if (firecrawlKey) {
+    liveData = await fetchTravelAdvisory(destinationCountry, firecrawlKey)
+  }
+
+  const anthropic = new Anthropic({ apiKey: anthropicKey })
+
+  let briefing: Record<string, unknown>
+  try {
+    const message = await anthropic.messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 4096,
+      system: [
+        {
+          type: 'text',
+          text: STABLE_SYSTEM_PROMPT,
+          cache_control: { type: 'ephemeral' },
+        },
+        {
+          type: 'text',
+          text: liveData
+            ? `LIVE TRAVEL ADVISORY DATA:\n${liveData}\n\nUse this real-time data to inform your briefing.`
+            : 'Note: Live data unavailable. Use your most current knowledge.',
+        },
+      ],
+      messages: [
+        {
+          role: 'user',
+          content: `Generate a safety briefing for a solo woman traveling to ${destinationCity}, ${destinationCountry} from ${travelDatesStart} to ${travelDatesEnd}.`,
+        },
+      ],
+    })
+
+    const text = message.content
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .map((b) => b.text)
+      .join('')
+      .trim()
+
+    const jsonStart = text.indexOf('{')
+    const jsonEnd = text.lastIndexOf('}')
+
+    if (jsonStart < 0 || jsonEnd <= jsonStart) {
+      throw new Error('Model response did not contain a JSON object')
+    }
+
+    briefing = JSON.parse(text.slice(jsonStart, jsonEnd + 1)) as Record<
+      string,
+      unknown
+    >
+    briefing.data_source = liveData ? 'live' : 'ai_knowledge'
+  } catch (err) {
+    return jsonResponse(
+      {
+        success: false,
+        error:
+          err instanceof Error
+            ? `Briefing generation failed: ${err.message}`
+            : 'Briefing generation failed',
+      },
+      500,
+    )
+  }
+
+  try {
+    const supabase = createClient(supabaseUrl, supabaseKey)
+    const { error } = await supabase
+      .from('trips')
+      .update({ briefing_data: briefing })
+      .eq('share_code', shareCode)
+
+    if (error) throw error
+  } catch (err) {
+    return jsonResponse(
+      {
+        success: false,
+        error:
+          err instanceof Error
+            ? `Failed to save briefing: ${err.message}`
+            : 'Failed to save briefing',
+      },
+      500,
+    )
+  }
+
+  return jsonResponse({
+    success: true,
+    dataSource: liveData ? 'live' : 'ai_knowledge',
+  })
+}
