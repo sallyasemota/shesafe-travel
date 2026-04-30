@@ -47,25 +47,44 @@ export function DemoBanner({ trip }: { trip: Trip }) {
 
   return (
     <div className="px-4 sm:px-6 pt-5">
-      <div className="max-w-2xl mx-auto rounded-2xl bg-gold/15 border border-gold/50 p-5 sm:p-6 space-y-4">
-        <div className="space-y-1.5">
+      <div className="max-w-2xl mx-auto rounded-2xl bg-gold/15 border border-gold/50 p-5 sm:p-6 space-y-5">
+        <div className="space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral">
             Live demo
           </p>
-          <h2 className="font-serif font-medium text-xl sm:text-2xl leading-snug tracking-tight text-navy">
-            This is what your{' '}
-            <span className="italic text-coral">mom</span> sees during your
-            trip.
+          <h2 className="font-serif font-medium text-2xl sm:text-3xl leading-tight tracking-tight text-navy">
+            What is{' '}
+            <span className="italic text-coral">SheSafe Travel?</span>
           </h2>
-          <p className="text-sm text-navy/75 leading-relaxed">
-            Live countdown, AI safety briefing, tap-to-call emergency contacts.
-            Updates appear in real time across every device that has the link
-            open.
+          <p className="text-sm sm:text-[15px] text-navy/80 leading-relaxed">
+            A real-time safety companion for women who travel solo. One
+            shareable link — no app, no login — keeps the people who love you
+            in the loop with a live check-in countdown, an AI safety briefing
+            tailored to your destination, and tap-to-call emergency contacts.
+            Built for Women Build AI Build-A-Thon 2026.
+          </p>
+          <div className="flex flex-wrap gap-1.5 pt-2">
+            <FeaturePill>Live check-in timer</FeaturePill>
+            <FeaturePill>AI safety briefing</FeaturePill>
+            <FeaturePill>Emergency contacts</FeaturePill>
+            <FeaturePill>Offline PDF packets</FeaturePill>
+          </div>
+        </div>
+
+        <div className="border-t border-gold/40 pt-4 space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy/55">
+            What this page is
+          </p>
+          <p className="text-sm text-navy/80 leading-relaxed">
+            Exactly what your{' '}
+            <span className="italic">mom</span> sees during your trip — the
+            same live page she'd open from the link you texted her. Every
+            change appears in real time on every open device.
           </p>
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-navy/55">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy/55">
             Try the cascade instantly
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -107,10 +126,18 @@ export function DemoBanner({ trip }: { trip: Trip }) {
         )}
 
         <p className="text-xs text-navy/55 italic">
-          Demo controls only. They won't appear on real trips you create.
+          Demo controls only · won't appear on real trips you create.
         </p>
       </div>
     </div>
+  )
+}
+
+function FeaturePill({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-full bg-white/80 border border-gold/40 px-3 py-1 text-xs font-medium text-navy">
+      {children}
+    </span>
   )
 }
 
