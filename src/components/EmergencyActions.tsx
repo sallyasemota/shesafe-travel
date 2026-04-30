@@ -1,0 +1,150 @@
+import type { EmergencyContact, Trip } from '../types/trip'
+
+function telHref(phone: string): string {
+  return `tel:${phone.replace(/[^\d+]/g, '')}`
+}
+
+function extractTel(value: string): string | null {
+  const match = value.match(/[+0-9][\d\s\-()]{2,}/)
+  if (!match) return null
+  const cleaned = match[0].replace(/[^\d+]/g, '')
+  return cleaned.length >= 3 ? `tel:${cleaned}` : null
+}
+
+interface ActionItem {
+  key: string
+  label: string
+  detail?: string
+  tel: string
+}
+
+function buildActions(trip: Trip): ActionItem[] {
+  const items: ActionItem[] = []
+  const emergency = trip.briefing_data?.sections?.emergency_contacts
+
+  if (trip.traveler_phone) {
+    items.push({
+      key: 'traveler',
+      label: `Call ${trip.traveler_name}`,
+      detail: trip.traveler_phone,
+      tel: telHref(trip.traveler_phone),
+    })
+  }
+
+  if (emergency?.police) {
+    const tel = extractTel(emergency.police)
+    if (tel) {
+      items.push({
+        key: 'police',
+        label: 'Local police',
+        detail: emergency.police,
+        tel,
+      })
+    }
+  }
+
+  if (emergency?.us_embassy) {
+    const tel = extractTel(emergency.us_embassy)
+    if (tel) {
+      items.push({
+        key: 'embassy',
+        label: 'US Embassy',
+        detail: emergency.us_embassy,
+        tel,
+      })
+    }
+  }
+
+  const contacts = (trip.emergency_contacts ?? []).filter(
+    (c): c is EmergencyContact => Boolean(c?.name && c?.phone),
+  )
+  contacts.forEach((c, i) => {
+    items.push({
+      key: `contact-${i}`,
+      label: `Call ${c.name}`,
+      detail: c.relationship ? `${c.relationship} — ${c.phone}` : c.phone,
+      tel: telHref(c.phone),
+    })
+  })
+
+  return items
+}
+
+export function EmergencyActions({
+  trip,
+  urgent,
+}: {
+  trip: Trip
+  urgent: boolean
+}) {
+  const actions = buildActions(trip)
+  if (actions.length === 0) return null
+
+  if (urgent) {
+    return (
+      <div className="rounded-2xl bg-white border-2 border-red-400 shadow-lg p-5 space-y-3 [animation:pulse_2.5s_ease-in-out_infinite]">
+        <div className="flex items-center gap-2">
+          <span className="text-red-600 text-xl" aria-hidden>
+            🚨
+          </span>
+          <h2 className="text-base sm:text-lg font-bold text-red-700 uppercase tracking-wide">
+            Call for help — now
+          </h2>
+        </div>
+        <ul className="space-y-3">
+          {actions.map((a) => (
+            <li key={a.key}>
+              <a
+                href={a.tel}
+                className="flex items-center justify-between gap-3 rounded-xl bg-red-600 text-white px-4 py-5 shadow hover:bg-red-700 active:scale-[0.99] transition"
+              >
+                <div className="min-w-0">
+                  <p className="text-base sm:text-lg font-bold truncate">
+                    {a.label}
+                  </p>
+                  {a.detail && (
+                    <p className="text-sm opacity-90 truncate">{a.detail}</p>
+                  )}
+                </div>
+                <span
+                  className="shrink-0 text-base sm:text-lg font-bold"
+                  aria-hidden
+                >
+                  📞 CALL
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-2xl bg-white border border-navy/10 shadow-sm p-5">
+      <h2 className="text-base uppercase tracking-wider text-navy/60 font-semibold mb-3">
+        Emergency actions
+      </h2>
+      <ul className="space-y-2">
+        {actions.map((a) => (
+          <li key={a.key}>
+            <a
+              href={a.tel}
+              className="flex items-center justify-between gap-3 rounded-xl bg-cream/40 border border-gold/40 px-4 py-3 hover:bg-cream/60 active:scale-[0.99] transition"
+            >
+              <div className="min-w-0">
+                <p className="font-semibold text-navy truncate">{a.label}</p>
+                {a.detail && (
+                  <p className="text-sm text-navy/70 truncate">{a.detail}</p>
+                )}
+              </div>
+              <span className="shrink-0 rounded-full bg-coral text-cream font-semibold text-xs px-3 py-1.5">
+                Call
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}

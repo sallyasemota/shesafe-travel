@@ -4,6 +4,9 @@ import { BriefingSection } from '../components/BriefingSection'
 import { CheckInHistoryList } from '../components/CheckInHistoryList'
 import { CheckInTimer } from '../components/CheckInTimer'
 import { CheckInWarningOverlay } from '../components/CheckInWarningOverlay'
+import { EmergencyActions } from '../components/EmergencyActions'
+import { PDFDownloads } from '../components/PDFDownloads'
+import { ShareButton } from '../components/ShareButton'
 import { TripStatusDisplay } from '../components/TripStatusDisplay'
 import { useCheckInActions } from '../hooks/useCheckInActions'
 import { useCheckInHistory } from '../hooks/useCheckInHistory'
@@ -15,11 +18,7 @@ import {
   formatRelative,
   type VisualStatus,
 } from '../lib/tripStatus'
-import type {
-  EmergencyContact,
-  RiskLevel,
-  Trip,
-} from '../types/trip'
+import type { RiskLevel, Trip } from '../types/trip'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -28,10 +27,6 @@ function formatDate(iso: string): string {
     day: 'numeric',
     timeZone: 'UTC',
   })
-}
-
-function telHref(phone: string): string {
-  return `tel:${phone.replace(/[^\d+]/g, '')}`
 }
 
 function isTravelerForCode(shareCode: string | undefined): boolean {
@@ -107,12 +102,12 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
     !warningDismissed &&
     !!trip.timer_expires_at
 
-  const contacts = (trip.emergency_contacts ?? []).filter(
-    (c): c is EmergencyContact => Boolean(c?.name && c?.phone),
-  )
-
   const isAlert = visualStatus === 'red'
   const lastCheckIn = checkIns[0]
+  const pageUrl =
+    typeof window !== 'undefined'
+      ? window.location.href
+      : `https://shesafe-travel.vercel.app/trip/${trip.share_code}`
 
   const handleRefreshBriefing = async () => {
     await supabase
@@ -158,6 +153,7 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
           {trip.briefing_data?.overall_risk_level && (
             <RiskBadge level={trip.briefing_data.overall_risk_level} />
           )}
+          <ShareButton url={pageUrl} travelerName={trip.traveler_name} />
         </div>
       </header>
 
@@ -184,10 +180,7 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
               </p>
             </div>
 
-            <UrgentEmergencyContactsCard
-              contacts={contacts}
-              travelerPhone={trip.traveler_phone}
-            />
+            <EmergencyActions trip={trip} urgent />
             <IfIGoMissing trip={trip} />
           </>
         )}
@@ -200,42 +193,11 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
           </Section>
         )}
 
-        {(checkIns.length > 0 ||
-          trip.check_in_status === 'active') && (
+        {!isAlert && <EmergencyActions trip={trip} urgent={false} />}
+
+        {(checkIns.length > 0 || trip.check_in_status === 'active') && (
           <Section title="Check-in history">
             <CheckInHistoryList checkIns={checkIns} />
-          </Section>
-        )}
-
-        {!isAlert && contacts.length > 0 && (
-          <Section title="Your emergency contacts">
-            <ul className="space-y-3">
-              {contacts.map((c, i) => (
-                <li key={i}>
-                  <a
-                    href={telHref(c.phone)}
-                    className="flex items-center justify-between gap-3 rounded-xl bg-cream/40 border border-gold/40 px-4 py-4 active:scale-[0.99] transition"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-semibold text-lg truncate">
-                        {c.name}
-                      </p>
-                      {c.relationship && (
-                        <p className="text-sm text-navy/60 truncate">
-                          {c.relationship}
-                        </p>
-                      )}
-                      <p className="text-base text-navy/80 truncate">
-                        {c.phone}
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded-full bg-coral text-cream font-semibold text-sm px-4 py-2">
-                      Call
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
           </Section>
         )}
 
@@ -244,6 +206,10 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
             data={trip.briefing_data}
             onRefresh={handleRefreshBriefing}
           />
+        </Section>
+
+        <Section title="Offline access">
+          <PDFDownloads trip={trip} />
         </Section>
       </div>
 
@@ -362,61 +328,6 @@ function Section({
       </h2>
       {children}
     </section>
-  )
-}
-
-function UrgentEmergencyContactsCard({
-  contacts,
-  travelerPhone,
-}: {
-  contacts: EmergencyContact[]
-  travelerPhone: string | null
-}) {
-  if (contacts.length === 0 && !travelerPhone) return null
-  return (
-    <div className="rounded-2xl bg-white border-2 border-red-400 shadow-lg p-5 space-y-3">
-      <h3 className="text-lg font-bold text-red-700">
-        Call for help — now
-      </h3>
-      <ul className="space-y-3">
-        {contacts.map((c, i) => (
-          <li key={i}>
-            <a
-              href={telHref(c.phone)}
-              className="flex items-center justify-between gap-3 rounded-xl bg-red-600 text-white px-4 py-5 shadow hover:bg-red-700 active:scale-[0.99] transition"
-            >
-              <div className="min-w-0">
-                <p className="text-base sm:text-lg font-bold truncate">
-                  {c.name}
-                </p>
-                <p className="text-sm opacity-90 truncate">
-                  {c.relationship} — {c.phone}
-                </p>
-              </div>
-              <span className="shrink-0 text-base sm:text-lg font-bold">
-                📞 CALL
-              </span>
-            </a>
-          </li>
-        ))}
-        {travelerPhone && (
-          <li>
-            <a
-              href={telHref(travelerPhone)}
-              className="flex items-center justify-between gap-3 rounded-xl bg-white text-red-700 border-2 border-red-400 px-4 py-4 hover:bg-red-50 active:scale-[0.99] transition"
-            >
-              <div className="min-w-0">
-                <p className="text-base font-semibold">
-                  Call traveler directly
-                </p>
-                <p className="text-sm">{travelerPhone}</p>
-              </div>
-              <span className="shrink-0 text-lg font-bold">📞</span>
-            </a>
-          </li>
-        )}
-      </ul>
-    </div>
   )
 }
 
