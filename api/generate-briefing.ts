@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 export const config = {
-  maxDuration: 30,
+  maxDuration: 60,
 }
 
 const FIRECRAWL_TIMEOUT_MS = 10_000
@@ -161,7 +161,7 @@ export default async function handler(
   try {
     const message = await anthropic.messages.create({
       model: CLAUDE_MODEL,
-      max_tokens: 4096,
+      max_tokens: 3072,
       system: [
         {
           type: 'text',
