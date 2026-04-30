@@ -208,6 +208,7 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         <Section title="AI safety briefing">
           <BriefingSection
             data={trip.briefing_data}
+            homeCountry={trip.traveler_home_country}
             onRefresh={handleRefreshBriefing}
           />
         </Section>

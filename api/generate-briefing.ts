@@ -16,6 +16,7 @@ interface BriefingRequest {
   destinationCountry: string
   travelDatesStart: string
   travelDatesEnd: string
+  travelerHomeCountry?: string | null
 }
 
 const STABLE_SYSTEM_PROMPT = `You are SheSafe Travel's AI safety advisor for women travelers. Generate an actionable safety briefing specifically for women traveling to the given destination.
@@ -43,7 +44,7 @@ Return a JSON object with this EXACT structure:
       "police": "number",
       "ambulance": "number",
       "fire": "number",
-      "us_embassy": "string with phone + address",
+      "embassy": "string with phone + address for the traveler's HOME COUNTRY embassy/consulate in this destination — name, phone, and street address. If no embassy in the destination country, return the nearest consular service plus a one-line note. Substitute the actual home country in your answer.",
       "womens_crisis_line": "number or 'Not available'"
     },
     "health_and_medical": "string (hospitals, pharmacies, vaccinations)",
@@ -142,7 +143,10 @@ export default async function handler(
     destinationCountry,
     travelDatesStart,
     travelDatesEnd,
+    travelerHomeCountry,
   } = body ?? ({} as BriefingRequest)
+
+  const homeCountry = travelerHomeCountry?.trim() || 'United States'
 
   if (
     !shareCode ||
@@ -187,7 +191,7 @@ export default async function handler(
       messages: [
         {
           role: 'user',
-          content: `Generate a safety briefing for a solo woman traveling to ${destinationCity}, ${destinationCountry} from ${travelDatesStart} to ${travelDatesEnd}.`,
+          content: `Generate a safety briefing for a solo woman traveling to ${destinationCity}, ${destinationCountry} from ${travelDatesStart} to ${travelDatesEnd}. The traveler's passport is from ${homeCountry} — return ${homeCountry}'s embassy or nearest consulate (name, phone, address) in the emergency_contacts.embassy field.`,
         },
       ],
     })

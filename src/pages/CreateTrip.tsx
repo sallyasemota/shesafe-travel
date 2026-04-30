@@ -1,5 +1,6 @@
 import { useState, type FormEventHandler } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { COUNTRY_OPTIONS } from '../lib/countries'
 import { supabase } from '../lib/supabase'
 import type { EmergencyContact } from '../types/trip'
 
@@ -41,6 +42,7 @@ export default function CreateTrip() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [travelerPhone, setTravelerPhone] = useState('')
+  const [homeCountry, setHomeCountry] = useState('')
   const [contacts, setContacts] = useState<EmergencyContact[]>([{ ...emptyContact }])
 
   const [showOptional, setShowOptional] = useState(false)
@@ -119,6 +121,7 @@ export default function CreateTrip() {
         travel_dates_start: startDate,
         travel_dates_end: endDate,
         traveler_phone: travelerPhone.trim() || null,
+        traveler_home_country: homeCountry.trim() || null,
         emergency_contacts: filteredContacts,
         medical_info: medicalInfo,
         passport_info: passportInfo,
@@ -147,6 +150,7 @@ export default function CreateTrip() {
           destinationCountry: country.trim(),
           travelDatesStart: startDate,
           travelDatesEnd: endDate,
+          travelerHomeCountry: homeCountry.trim() || null,
         }),
       }).catch(() => {})
 
@@ -276,6 +280,32 @@ export default function CreateTrip() {
                   className={inputBase}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className={labelBase} htmlFor="homeCountry">
+                Your passport country
+              </label>
+              <input
+                id="homeCountry"
+                type="text"
+                required
+                list="home-country-options"
+                value={homeCountry}
+                onChange={(e) => setHomeCountry(e.target.value)}
+                placeholder="Start typing — e.g. United States, Nigeria, Germany"
+                autoComplete="country-name"
+                className={inputBase}
+              />
+              <datalist id="home-country-options">
+                {COUNTRY_OPTIONS.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+              <p className="mt-1 text-xs text-navy/60">
+                We use this to surface the right embassy in your safety
+                briefing. Type any country — the list is a suggestion.
+              </p>
             </div>
           </div>
 

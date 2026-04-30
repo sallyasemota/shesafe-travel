@@ -45,13 +45,15 @@ function buildActions(trip: Trip): ActionItem[] {
     }
   }
 
-  if (emergency?.us_embassy) {
-    const tel = extractTel(emergency.us_embassy)
+  const embassyValue = emergency?.embassy ?? emergency?.us_embassy
+  if (embassyValue) {
+    const tel = extractTel(embassyValue)
     if (tel) {
+      const homeCountry = trip.traveler_home_country?.trim() || 'US'
       items.push({
         key: 'embassy',
-        label: 'US Embassy',
-        detail: emergency.us_embassy,
+        label: `${homeCountry} Embassy`,
+        detail: embassyValue,
         tel,
       })
     }

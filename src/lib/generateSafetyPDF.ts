@@ -131,12 +131,14 @@ export function generateSafetyPDF(trip: Trip): void {
     doc.text(`Fire: ${emergency.fire}`, MARGIN, cursor.y)
     cursor.y += 10
   }
-  if (emergency?.us_embassy) {
+  const embassyValue = emergency?.embassy ?? emergency?.us_embassy
+  if (embassyValue) {
+    const homeCountry = trip.traveler_home_country?.trim() || 'US'
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(13)
-    doc.text('US Embassy:', MARGIN, cursor.y)
+    doc.text(`${homeCountry} Embassy:`, MARGIN, cursor.y)
     cursor.y += 5
-    drawWrappedText(doc, cursor, emergency.us_embassy, 12, 'normal', 4)
+    drawWrappedText(doc, cursor, embassyValue, 12, 'normal', 4)
   }
   if (
     emergency?.womens_crisis_line &&

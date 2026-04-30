@@ -23,6 +23,8 @@ export interface BriefingEmergencyContacts {
   police?: string
   ambulance?: string
   fire?: string
+  embassy?: string
+  /** @deprecated kept for back-compat with briefings generated before the schema generalized to `embassy` */
   us_embassy?: string
   womens_crisis_line?: string
 }
@@ -74,6 +76,7 @@ export interface Trip {
   passport_info: PassportInfo | null
   traveler_photo_url: string | null
   traveler_phone: string | null
+  traveler_home_country: string | null
   hotel_name: string | null
   hotel_address: string | null
   hotel_phone: string | null

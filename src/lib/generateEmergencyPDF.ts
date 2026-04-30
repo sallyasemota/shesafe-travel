@@ -156,8 +156,11 @@ export function generateEmergencyPDF(trip: Trip): void {
     if (emergency.ambulance)
       drawKeyValue(doc, cursor, 'Ambulance', emergency.ambulance)
     if (emergency.fire) drawKeyValue(doc, cursor, 'Fire', emergency.fire)
-    if (emergency.us_embassy)
-      drawKeyValue(doc, cursor, 'Embassy', emergency.us_embassy)
+    const embassyValue = emergency.embassy ?? emergency.us_embassy
+    if (embassyValue) {
+      const homeCountry = trip.traveler_home_country?.trim() || 'US'
+      drawKeyValue(doc, cursor, `${homeCountry} Embassy`, embassyValue)
+    }
     if (
       emergency.womens_crisis_line &&
       emergency.womens_crisis_line.toLowerCase() !== 'not available'

@@ -118,6 +118,16 @@ Set the same four environment variables on the Vercel project (Settings → Envi
 
 ---
 
+## Known limitations (hackathon scope)
+
+A few honest caveats — for transparency, not for hiding:
+
+- **Privacy gating on the "If I Go Missing" data is currently UI-only.** The trip page subscribes to the full `trips` row, including `passport_info`, `medical_info`, and `traveler_photo_url`. The React render hides those fields when the visual status isn't `red`, but the data is in the network response on every viewer's browser. Real gating belongs at the database layer (RLS policy or a Postgres view that returns redacted vs full payloads keyed on `check_in_status`). Treat the demo data as fictitious; don't enter real passport numbers in v1.
+- **Traveler vs viewer is determined by `localStorage`.** Switching devices or clearing site data drops the "I am the traveler" flag and the timer controls disappear. Real fix is a magic-link admin token in the URL.
+- **Anon Supabase key has broad permissions.** Trip INSERT and UPDATE are open. There's no rate limit on `/api/generate-briefing` (every call costs Anthropic tokens). Production would need an authenticated session and a per-IP rate limit.
+- **The "notification" is a tab.** Mom must keep the trip page open. iOS Safari aggressively suspends background tabs. Real fix is SMS / email / push fallback when she goes offline.
+- **AI briefings can be wrong.** Claude generates the embassy and emergency numbers from training data when Firecrawl fails. The page labels every briefing "Live advisory data" or "AI knowledge" so viewers know — but always verify critical numbers before trusting them.
+
 ## Scope
 
 Not in scope (intentional non-goals):

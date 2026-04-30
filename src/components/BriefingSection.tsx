@@ -167,9 +167,11 @@ function AccordionItem({
 
 export function BriefingSection({
   data,
+  homeCountry,
   onRefresh,
 }: {
   data: BriefingData | null
+  homeCountry?: string | null
   onRefresh?: () => void
 }) {
   if (!data) return <BriefingLoading />
@@ -177,6 +179,8 @@ export function BriefingSection({
   const sections = data.sections ?? {}
   const emergency = sections.emergency_contacts
   const isLive = data.data_source === 'live'
+  const embassyLabel = `${homeCountry?.trim() || 'US'} Embassy`
+  const embassyValue = emergency?.embassy ?? emergency?.us_embassy
 
   return (
     <div className="space-y-5">
@@ -224,8 +228,8 @@ export function BriefingSection({
             {emergency.fire && (
               <EmergencyRow label="Fire" value={emergency.fire} />
             )}
-            {emergency.us_embassy && (
-              <EmergencyRow label="US Embassy" value={emergency.us_embassy} />
+            {embassyValue && (
+              <EmergencyRow label={embassyLabel} value={embassyValue} />
             )}
             {emergency.womens_crisis_line &&
               emergency.womens_crisis_line.toLowerCase() !==

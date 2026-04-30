@@ -42,8 +42,8 @@ const briefingData: BriefingData = {
       police: '19',
       ambulance: '15',
       fire: '15',
-      us_embassy:
-        '+212 (0)5 37-63-72-00, US Embassy Casablanca, Avenue Mohammed VI — consular services also cover Marrakesh',
+      embassy:
+        'US Consulate General Casablanca: +212 522-64-20-00, 8 Boulevard Moulay Youssef, Casablanca — handles consular services for Marrakesh.',
       womens_crisis_line: 'Not available',
     },
     health_and_medical:
@@ -102,6 +102,7 @@ async function main() {
         travel_dates_start: today,
         travel_dates_end: oneWeek,
         traveler_phone: '+1 555 123 4567',
+        traveler_home_country: 'United States',
         emergency_contacts: [
           { name: 'Mom', phone: '+1 555 234 5678', relationship: 'Mother' },
           { name: 'Alex', phone: '+1 555 345 6789', relationship: 'Partner' },
@@ -116,8 +117,9 @@ async function main() {
           issuing_country: 'United States',
         },
         traveler_photo_url: null,
-        hotel_name: 'Riad Yasmine',
-        hotel_address: '152 Derb Sidi Bouloukate, Medina, Marrakech 40000',
+        hotel_name: 'Riad Yasmine (demo)',
+        hotel_address:
+          '209 Diour Saboune, Bab Taghzoute, Medina, Marrakech (real address — demo data only)',
         hotel_phone: '+212 524 38 71 04',
         briefing_data: briefingData,
         check_in_status: 'active',
