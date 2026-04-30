@@ -3,7 +3,23 @@ import { useCheckInActions } from '../hooks/useCheckInActions'
 import type { VisualStatus } from '../lib/tripStatus'
 import type { Trip } from '../types/trip'
 
-const PRESETS = [1, 2, 4, 8] as const
+interface Preset {
+  key: string
+  label: string
+  ms: number
+}
+
+const PRESETS: Preset[] = [
+  { key: '1h', label: '1h', ms: 60 * 60_000 },
+  { key: '2h', label: '2h', ms: 2 * 60 * 60_000 },
+  { key: '4h', label: '4h', ms: 4 * 60 * 60_000 },
+  { key: '8h', label: '8h', ms: 8 * 60 * 60_000 },
+]
+
+const DEMO_PRESETS: Preset[] = [
+  { key: '30s', label: '30 sec', ms: 30_000 },
+  { key: '1m', label: '1 min', ms: 60_000 },
+]
 
 export function CheckInTimer({
   trip,
@@ -16,18 +32,20 @@ export function CheckInTimer({
   const isWarning = visualStatus === 'yellow'
   const actions = useCheckInActions(trip)
 
-  const [preset, setPreset] = useState<number | 'custom'>(2)
+  const [presetKey, setPresetKey] = useState<string>('2h')
   const [customHours, setCustomHours] = useState('3')
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function selectedHours(): number | null {
-    if (preset === 'custom') {
+  function selectedMs(): number | null {
+    if (presetKey === 'custom') {
       const n = parseFloat(customHours)
-      return Number.isNaN(n) || n <= 0 ? null : n
+      if (Number.isNaN(n) || n <= 0) return null
+      return n * 60 * 60_000
     }
-    return preset
+    const p = [...PRESETS, ...DEMO_PRESETS].find((p) => p.key === presetKey)
+    return p?.ms ?? null
   }
 
   const wrap = (label: string, fn: () => Promise<void>) => async () => {
@@ -43,11 +61,11 @@ export function CheckInTimer({
   }
 
   const startTimer = wrap('start timer', async () => {
-    const hours = selectedHours()
-    if (!hours) {
+    const ms = selectedMs()
+    if (!ms) {
       throw new Error('Pick a duration first.')
     }
-    await actions.startTimer(hours)
+    await actions.startTimer(ms)
   })
 
   const checkIn = wrap('check in', async () => {
@@ -164,25 +182,25 @@ export function CheckInTimer({
           Duration
         </p>
         <div className="grid grid-cols-5 gap-2">
-          {PRESETS.map((h) => (
+          {PRESETS.map((p) => (
             <button
-              key={h}
+              key={p.key}
               type="button"
-              onClick={() => setPreset(h)}
+              onClick={() => setPresetKey(p.key)}
               className={`rounded-full px-3 py-2 text-sm font-medium border transition ${
-                preset === h
+                presetKey === p.key
                   ? 'bg-coral text-cream border-coral'
                   : 'bg-white text-navy border-navy/15 hover:bg-navy/5'
               }`}
             >
-              {h}h
+              {p.label}
             </button>
           ))}
           <button
             type="button"
-            onClick={() => setPreset('custom')}
+            onClick={() => setPresetKey('custom')}
             className={`rounded-full px-3 py-2 text-sm font-medium border transition ${
-              preset === 'custom'
+              presetKey === 'custom'
                 ? 'bg-coral text-cream border-coral'
                 : 'bg-white text-navy border-navy/15 hover:bg-navy/5'
             }`}
@@ -190,7 +208,26 @@ export function CheckInTimer({
             Custom
           </button>
         </div>
-        {preset === 'custom' && (
+
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          {DEMO_PRESETS.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => setPresetKey(p.key)}
+              className={`rounded-full px-3 py-1.5 text-xs font-medium border transition ${
+                presetKey === p.key
+                  ? 'bg-gold/40 text-navy border-gold'
+                  : 'bg-white text-navy/70 border-navy/10 hover:bg-gold/10'
+              }`}
+              title="Demo preset — short timer for showing the escalation cascade quickly"
+            >
+              ⚡ {p.label} (demo)
+            </button>
+          ))}
+        </div>
+
+        {presetKey === 'custom' && (
           <div className="mt-2 flex items-center gap-2">
             <input
               type="number"

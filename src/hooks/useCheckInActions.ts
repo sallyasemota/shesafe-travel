@@ -2,16 +2,16 @@ import { supabase } from '../lib/supabase'
 import type { Trip } from '../types/trip'
 
 export interface CheckInActions {
-  startTimer: (hours: number) => Promise<void>
+  startTimer: (durationMs: number) => Promise<void>
   checkIn: (message?: string | null) => Promise<void>
   addOneHour: () => Promise<void>
   stopTimer: () => Promise<void>
 }
 
 export function useCheckInActions(trip: Trip): CheckInActions {
-  async function startTimer(hours: number) {
+  async function startTimer(durationMs: number) {
     const now = new Date()
-    const expiresAt = new Date(now.getTime() + hours * 3_600_000)
+    const expiresAt = new Date(now.getTime() + durationMs)
     const { error } = await supabase
       .from('trips')
       .update({

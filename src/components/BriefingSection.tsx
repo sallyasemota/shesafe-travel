@@ -24,10 +24,12 @@ const ACCORDION_SECTIONS: Array<{
 ]
 
 function extractTel(value: string): string | null {
-  const match = value.match(/[+0-9][\d\s\-()]{2,}/)
+  // Match +/digit followed by 1+ more chars from the phone-allowed set.
+  // Total length must be ≥ 2 — covers short emergency numbers like "19", "15", "911".
+  const match = value.match(/[+0-9][\d\s\-()]+/)
   if (!match) return null
   const cleaned = match[0].replace(/[^\d+]/g, '')
-  return cleaned.length >= 3 ? `tel:${cleaned}` : null
+  return cleaned.length >= 2 ? `tel:${cleaned}` : null
 }
 
 function BriefingLoading() {
