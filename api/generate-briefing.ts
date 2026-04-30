@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
+import type { VercelRequest, VercelResponse } from '@vercel/node'
 
 export const config = {
   maxDuration: 30,
@@ -99,19 +100,13 @@ async function fetchTravelAdvisory(
   }
 }
 
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  })
-}
-
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse,
+): Promise<void> {
   if (req.method !== 'POST') {
-    return jsonResponse(
-      { success: false, error: 'Method not allowed' },
-      405,
-    )
+    res.status(405).json({ success: false, error: 'Method not allowed' })
+    return
   }
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY
@@ -120,18 +115,17 @@ export default async function handler(req: Request): Promise<Response> {
   const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
 
   if (!anthropicKey || !supabaseUrl || !supabaseKey) {
-    return jsonResponse(
-      { success: false, error: 'Server is missing required environment variables' },
-      500,
-    )
+    res.status(500).json({
+      success: false,
+      error: 'Server is missing required environment variables',
+    })
+    return
   }
 
-  let body: BriefingRequest
-  try {
-    body = (await req.json()) as BriefingRequest
-  } catch {
-    return jsonResponse({ success: false, error: 'Invalid JSON body' }, 400)
-  }
+  const body =
+    typeof req.body === 'string'
+      ? (JSON.parse(req.body) as BriefingRequest)
+      : (req.body as BriefingRequest)
 
   const {
     shareCode,
@@ -139,7 +133,7 @@ export default async function handler(req: Request): Promise<Response> {
     destinationCountry,
     travelDatesStart,
     travelDatesEnd,
-  } = body
+  } = body ?? ({} as BriefingRequest)
 
   if (
     !shareCode ||
@@ -148,14 +142,12 @@ export default async function handler(req: Request): Promise<Response> {
     !travelDatesStart ||
     !travelDatesEnd
   ) {
-    return jsonResponse(
-      {
-        success: false,
-        error:
-          'Missing required fields: shareCode, destinationCity, destinationCountry, travelDatesStart, travelDatesEnd',
-      },
-      400,
-    )
+    res.status(400).json({
+      success: false,
+      error:
+        'Missing required fields: shareCode, destinationCity, destinationCountry, travelDatesStart, travelDatesEnd',
+    })
+    return
   }
 
   let liveData: string | null = null
@@ -210,16 +202,14 @@ export default async function handler(req: Request): Promise<Response> {
     >
     briefing.data_source = liveData ? 'live' : 'ai_knowledge'
   } catch (err) {
-    return jsonResponse(
-      {
-        success: false,
-        error:
-          err instanceof Error
-            ? `Briefing generation failed: ${err.message}`
-            : 'Briefing generation failed',
-      },
-      500,
-    )
+    res.status(500).json({
+      success: false,
+      error:
+        err instanceof Error
+          ? `Briefing generation failed: ${err.message}`
+          : 'Briefing generation failed',
+    })
+    return
   }
 
   try {
@@ -231,19 +221,17 @@ export default async function handler(req: Request): Promise<Response> {
 
     if (error) throw error
   } catch (err) {
-    return jsonResponse(
-      {
-        success: false,
-        error:
-          err instanceof Error
-            ? `Failed to save briefing: ${err.message}`
-            : 'Failed to save briefing',
-      },
-      500,
-    )
+    res.status(500).json({
+      success: false,
+      error:
+        err instanceof Error
+          ? `Failed to save briefing: ${err.message}`
+          : 'Failed to save briefing',
+    })
+    return
   }
 
-  return jsonResponse({
+  res.status(200).json({
     success: true,
     dataSource: liveData ? 'live' : 'ai_knowledge',
   })
