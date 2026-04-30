@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { BriefingSection } from '../components/BriefingSection'
 import { useRealtimeTrip } from '../hooks/useRealtimeTrip'
+import { supabase } from '../lib/supabase'
 import type { EmergencyContact, RiskLevel, Trip } from '../types/trip'
 
 function formatDate(iso: string): string {
@@ -58,6 +59,25 @@ function TripView({ trip }: { trip: Trip }) {
   const contacts = (trip.emergency_contacts ?? []).filter(
     (c): c is EmergencyContact => Boolean(c?.name && c?.phone),
   )
+
+  const handleRefreshBriefing = async () => {
+    await supabase
+      .from('trips')
+      .update({ briefing_data: null })
+      .eq('share_code', trip.share_code)
+
+    void fetch('/api/generate-briefing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        shareCode: trip.share_code,
+        destinationCity: trip.destination_city,
+        destinationCountry: trip.destination_country,
+        travelDatesStart: trip.travel_dates_start,
+        travelDatesEnd: trip.travel_dates_end,
+      }),
+    }).catch(() => {})
+  }
 
   return (
     <main className="min-h-full bg-cream text-navy">
@@ -117,7 +137,10 @@ function TripView({ trip }: { trip: Trip }) {
         )}
 
         <Section title="AI safety briefing">
-          <BriefingSection data={trip.briefing_data} />
+          <BriefingSection
+            data={trip.briefing_data}
+            onRefresh={handleRefreshBriefing}
+          />
         </Section>
 
         <Section title="Check-in status">

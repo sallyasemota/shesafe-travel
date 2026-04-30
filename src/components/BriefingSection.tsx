@@ -41,26 +41,41 @@ function BriefingLoading() {
   }, [])
 
   return (
-    <div className="rounded-2xl bg-white border border-coral/30 shadow-sm p-8 text-center space-y-4">
-      <p className="text-lg font-semibold text-coral animate-pulse">
-        Building your safety briefing…
-      </p>
-      <p
-        key={step}
-        className="text-sm text-navy/70 transition-opacity duration-500 animate-pulse"
-      >
-        {LOADING_STEPS[step]}
-      </p>
-      <div className="flex justify-center gap-2 pt-2" aria-hidden>
+    <div className="rounded-2xl bg-white border border-coral/30 shadow-sm px-5 py-8 sm:px-8 sm:py-10 text-center space-y-5 min-h-[260px] flex flex-col items-center justify-center">
+      <div className="space-y-3">
+        <p className="text-base sm:text-lg font-semibold text-coral animate-pulse">
+          Building your safety briefing…
+        </p>
+        <p
+          key={step}
+          className="text-sm text-navy/70 px-2 transition-opacity duration-500"
+        >
+          {LOADING_STEPS[step]}
+        </p>
+      </div>
+
+      <div className="w-full max-w-[180px] space-y-2 pt-1">
         {LOADING_STEPS.map((_, i) => (
-          <span
+          <div
             key={i}
-            className={`h-2 w-2 rounded-full transition-colors ${
-              i === step ? 'bg-coral' : 'bg-coral/30'
-            }`}
-          />
+            className="h-1.5 rounded-full bg-coral/20 overflow-hidden"
+          >
+            <div
+              className={`h-full bg-coral transition-all duration-700 ease-out ${
+                i === step
+                  ? 'w-full'
+                  : i < step || (step === 0 && i === LOADING_STEPS.length - 1)
+                    ? 'w-full opacity-50'
+                    : 'w-0'
+              }`}
+            />
+          </div>
         ))}
       </div>
+
+      <p className="text-xs text-navy/40 pt-1">
+        This usually takes about 30 seconds.
+      </p>
     </div>
   )
 }
@@ -68,7 +83,7 @@ function BriefingLoading() {
 function DataSourceBadge({ live }: { live: boolean }) {
   return (
     <div
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium border ${
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs sm:text-sm font-medium border ${
         live
           ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
           : 'bg-gold/30 text-navy border-gold'
@@ -78,7 +93,8 @@ function DataSourceBadge({ live }: { live: boolean }) {
         className={`h-2 w-2 rounded-full ${live ? 'bg-emerald-500' : 'bg-gold'}`}
         aria-hidden
       />
-      Data source: {live ? 'Live advisory data' : 'AI knowledge'}
+      <span className="hidden sm:inline">Data source: </span>
+      {live ? 'Live advisory data' : 'AI knowledge'}
     </div>
   )
 }
@@ -86,7 +102,7 @@ function DataSourceBadge({ live }: { live: boolean }) {
 function EmergencyRow({ label, value }: { label: string; value: string }) {
   const tel = extractTel(value)
   return (
-    <li className="flex items-baseline justify-between gap-3 py-1">
+    <li className="flex items-baseline justify-between gap-3 py-2">
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-navy">{label}</p>
         <p className="text-sm text-navy/80 break-words">{value}</p>
@@ -103,7 +119,57 @@ function EmergencyRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function BriefingSection({ data }: { data: BriefingData | null }) {
+function AccordionItem({
+  title,
+  defaultOpen = false,
+  children,
+}: {
+  title: string
+  defaultOpen?: boolean
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+
+  return (
+    <div className="rounded-xl bg-white border border-navy/10 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left text-navy font-medium hover:bg-navy/[0.02] transition-colors"
+      >
+        <span>{title}</span>
+        <span
+          aria-hidden
+          className={`text-coral text-xl leading-none transition-transform duration-300 ease-out ${
+            open ? 'rotate-45' : ''
+          }`}
+        >
+          +
+        </span>
+      </button>
+      <div
+        className={`grid transition-all duration-300 ease-out ${
+          open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="px-4 pb-4 text-sm text-navy/85 whitespace-pre-line">
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function BriefingSection({
+  data,
+  onRefresh,
+}: {
+  data: BriefingData | null
+  onRefresh?: () => void
+}) {
   if (!data) return <BriefingLoading />
 
   const sections = data.sections ?? {}
@@ -112,7 +178,18 @@ export function BriefingSection({ data }: { data: BriefingData | null }) {
 
   return (
     <div className="space-y-5">
-      <DataSourceBadge live={isLive} />
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <DataSourceBadge live={isLive} />
+        {onRefresh && (
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="text-xs sm:text-sm font-medium text-coral hover:underline active:opacity-70"
+          >
+            ↻ Refresh briefing
+          </button>
+        )}
+      </div>
 
       {data.top_3_tips && data.top_3_tips.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -165,24 +242,9 @@ export function BriefingSection({ data }: { data: BriefingData | null }) {
           const text = sections[key]
           if (typeof text !== 'string' || !text.trim()) return null
           return (
-            <details
-              key={key}
-              open={defaultOpen}
-              className="group rounded-xl bg-white border border-navy/10 overflow-hidden"
-            >
-              <summary className="cursor-pointer list-none flex items-center justify-between px-4 py-3 text-navy font-medium hover:bg-navy/[0.02] transition">
-                <span>{label}</span>
-                <span
-                  className="text-coral text-lg leading-none transition-transform duration-200 group-open:rotate-45"
-                  aria-hidden
-                >
-                  +
-                </span>
-              </summary>
-              <div className="px-4 pb-4 text-sm text-navy/85 whitespace-pre-line">
-                {text}
-              </div>
-            </details>
+            <AccordionItem key={key} title={label} defaultOpen={defaultOpen}>
+              {text}
+            </AccordionItem>
           )
         })}
       </div>
