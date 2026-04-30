@@ -72,122 +72,96 @@ function isoDate(date: Date): string {
   return date.toISOString().slice(0, 10)
 }
 
+// Hardcoded UUIDs so re-running the seed updates the same check-in rows
+// instead of accumulating duplicates. (Anon role doesn't have DELETE on
+// these tables under current RLS, so we rely on UPSERT for idempotency.)
+const CHECK_IN_IDS = [
+  '11111111-1111-1111-1111-111111111111',
+  '22222222-2222-2222-2222-222222222222',
+  '33333333-3333-3333-3333-333333333333',
+]
+
 async function main() {
   const now = new Date()
   const today = isoDate(now)
   const oneWeek = isoDate(new Date(now.getTime() + 7 * 24 * 3_600_000))
 
-  // 1. Look up existing demo trip
-  const { data: existing, error: lookupErr } = await supabase
-    .from('trips')
-    .select('id')
-    .eq('share_code', SHARE_CODE)
-    .maybeSingle()
-
-  if (lookupErr) {
-    console.error('Lookup failed:', lookupErr.message)
-    process.exit(1)
-  }
-
-  if (existing) {
-    const { error: ciDelErr } = await supabase
-      .from('check_ins')
-      .delete()
-      .eq('trip_id', existing.id)
-    if (ciDelErr) {
-      console.error('Failed to delete prior check_ins:', ciDelErr.message)
-      process.exit(1)
-    }
-    const { error: tripDelErr } = await supabase
-      .from('trips')
-      .delete()
-      .eq('share_code', SHARE_CODE)
-    if (tripDelErr) {
-      console.error('Failed to delete prior trip:', tripDelErr.message)
-      process.exit(1)
-    }
-    console.log(`Removed existing demo trip ${existing.id}`)
-  } else {
-    console.log('No existing demo trip found — fresh insert.')
-  }
-
-  // 2. Insert demo trip
   const lastCheckIn = new Date(now.getTime() - 30 * 60_000)
   const timerExpires = new Date(now.getTime() + 4 * 3_600_000)
 
+  // 1. Upsert trip by share_code (works whether row exists or not — anon RLS
+  //    permits INSERT and UPDATE, but not DELETE)
   const { data: trip, error: tripErr } = await supabase
     .from('trips')
-    .insert({
-      share_code: SHARE_CODE,
-      traveler_name: 'Demo Traveler',
-      destination_city: 'Marrakech',
-      destination_country: 'Morocco',
-      travel_dates_start: today,
-      travel_dates_end: oneWeek,
-      traveler_phone: '+1 555 123 4567',
-      emergency_contacts: [
-        { name: 'Mom', phone: '+1 555 234 5678', relationship: 'Mother' },
-        { name: 'Alex', phone: '+1 555 345 6789', relationship: 'Partner' },
-      ],
-      medical_info: {
-        blood_type: 'O+',
-        allergies: ['penicillin', 'shellfish'],
-        medications: [],
+    .upsert(
+      {
+        share_code: SHARE_CODE,
+        traveler_name: 'Demo Traveler',
+        destination_city: 'Marrakech',
+        destination_country: 'Morocco',
+        travel_dates_start: today,
+        travel_dates_end: oneWeek,
+        traveler_phone: '+1 555 123 4567',
+        emergency_contacts: [
+          { name: 'Mom', phone: '+1 555 234 5678', relationship: 'Mother' },
+          { name: 'Alex', phone: '+1 555 345 6789', relationship: 'Partner' },
+        ],
+        medical_info: {
+          blood_type: 'O+',
+          allergies: ['penicillin', 'shellfish'],
+          medications: [],
+        },
+        passport_info: {
+          number: 'A12345678',
+          issuing_country: 'United States',
+        },
+        traveler_photo_url: null,
+        hotel_name: 'Riad Yasmine',
+        hotel_address: '152 Derb Sidi Bouloukate, Medina, Marrakech 40000',
+        hotel_phone: '+212 524 38 71 04',
+        briefing_data: briefingData,
+        check_in_status: 'active',
+        last_check_in: lastCheckIn.toISOString(),
+        timer_expires_at: timerExpires.toISOString(),
       },
-      passport_info: {
-        number: 'A12345678',
-        issuing_country: 'United States',
-      },
-      traveler_photo_url: null,
-      hotel_name: 'Riad Yasmine',
-      hotel_address: '152 Derb Sidi Bouloukate, Medina, Marrakech 40000',
-      hotel_phone: '+212 524 38 71 04',
-      briefing_data: briefingData,
-      check_in_status: 'active',
-      last_check_in: lastCheckIn.toISOString(),
-      timer_expires_at: timerExpires.toISOString(),
-    })
+      { onConflict: 'share_code' },
+    )
     .select('id')
     .single()
 
   if (tripErr || !trip) {
-    console.error('Failed to insert trip:', tripErr?.message)
+    console.error('Failed to upsert trip:', tripErr?.message)
     process.exit(1)
   }
-  console.log(`Created demo trip ${trip.id}`)
+  console.log(`Upserted demo trip ${trip.id}`)
 
-  // 3. Insert sample check-ins (with explicit created_at so timestamps look real)
+  // 2. Upsert sample check-ins by hardcoded id so re-runs don't duplicate
   const checkIns = [
-    {
-      delta_minutes: -5 * 60,
-      message: 'Arrived at the riad, all settled in.',
-    },
-    {
-      delta_minutes: -3 * 60,
-      message: 'Heading to Jemaa el-Fna with friends.',
-    },
-    {
-      delta_minutes: -30,
-      message: 'Back at the riad, having dinner.',
-    },
+    { id: CHECK_IN_IDS[0], delta_minutes: -5 * 60, message: 'Arrived at the riad, all settled in.' },
+    { id: CHECK_IN_IDS[1], delta_minutes: -3 * 60, message: 'Heading to Jemaa el-Fna with friends.' },
+    { id: CHECK_IN_IDS[2], delta_minutes: -30, message: 'Back at the riad, having dinner.' },
   ]
 
-  let inserted = 0
+  let upserted = 0
   for (const ci of checkIns) {
     const created = new Date(now.getTime() + ci.delta_minutes * 60_000)
-    const { error } = await supabase.from('check_ins').insert({
-      trip_id: trip.id,
-      status: 'safe',
-      message: ci.message,
-      created_at: created.toISOString(),
-    })
+    const { error } = await supabase.from('check_ins').upsert(
+      {
+        id: ci.id,
+        trip_id: trip.id,
+        status: 'safe',
+        message: ci.message,
+        created_at: created.toISOString(),
+      },
+      { onConflict: 'id' },
+    )
     if (error) {
-      console.error(`Failed to insert check-in (${ci.delta_minutes}m):`, error.message)
+      console.error(`Failed to upsert check-in (${ci.delta_minutes}m):`, error.message)
       continue
     }
-    inserted++
+    upserted++
   }
-  console.log(`Inserted ${inserted} check-ins`)
+  console.log(`Upserted ${upserted} check-ins`)
 
   console.log('')
   console.log('Demo URL: https://shesafe-travel.vercel.app/trip/' + SHARE_CODE)
