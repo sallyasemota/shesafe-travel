@@ -389,8 +389,31 @@ function TripContactView({
         </div>
       </header>
 
-      {isAlert && (
+      {visualStatus === 'orange' && (
         <div className="px-5 pt-3 max-w-2xl mx-auto">
+          <div className="rounded-2xl bg-orange-100 border border-orange-300 text-orange-900 p-5 text-center shadow-sm">
+            <p className="text-xs uppercase tracking-widest font-bold text-orange-700">
+              ⚠ Overdue
+            </p>
+            <h2 className="text-xl sm:text-2xl font-bold mt-1">
+              {trip.traveler_name}'s check-in is overdue
+            </h2>
+            <p className="text-sm mt-1 text-orange-800/90">
+              {lastCheckIn
+                ? `Last check-in: ${formatRelative(lastCheckIn.created_at, now)}`
+                : trip.last_check_in
+                  ? `Timer started: ${formatRelative(trip.last_check_in, now)}`
+                  : 'No previous check-in on record'}
+            </p>
+            <p className="text-sm mt-2 text-orange-800/85">
+              She may be busy, but keep an eye on the timer.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isAlert && (
+        <div className="px-5 pt-3 max-w-2xl mx-auto space-y-3">
           <div className="rounded-2xl bg-red-600 text-white p-5 text-center shadow-lg">
             <p className="text-xs uppercase tracking-widest font-bold">
               ⚠ Emergency
@@ -410,6 +433,7 @@ function TripContactView({
               responders.
             </p>
           </div>
+          <IfIGoMissing trip={trip} />
         </div>
       )}
 
@@ -452,10 +476,7 @@ function TripContactView({
 
         <section id="contacts" className="scroll-mt-20 space-y-5">
           {isAlert ? (
-            <>
-              <EmergencyActions trip={trip} urgent />
-              <IfIGoMissing trip={trip} />
-            </>
+            <EmergencyActions trip={trip} urgent />
           ) : visualStatus === 'orange' ? (
             <>
               <OverdueNotice travelerName={trip.traveler_name} />
