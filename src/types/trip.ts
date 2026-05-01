@@ -54,7 +54,7 @@ export interface BriefingData {
   sections?: BriefingSections
   top_3_tips?: string[]
   phrases_to_know?: BriefingPhrase[]
-  data_source?: 'live' | 'ai_knowledge'
+  data_source?: 'live' | 'ai_knowledge' | 'demo'
 }
 
 export type CheckInStatus = 'inactive' | 'active' | 'overdue' | 'alert'

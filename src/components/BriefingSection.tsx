@@ -82,21 +82,39 @@ function BriefingLoading() {
   )
 }
 
-function DataSourceBadge({ live }: { live: boolean }) {
+function DataSourceBadge({
+  source,
+}: {
+  source: 'live' | 'ai_knowledge' | 'demo'
+}) {
+  const variant =
+    source === 'demo'
+      ? {
+          wrap: 'bg-coral/15 text-coral border-coral/40',
+          dot: 'bg-coral',
+          label: 'Pre-loaded briefing',
+        }
+      : source === 'live'
+        ? {
+            wrap: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+            dot: 'bg-emerald-500',
+            label: 'Live advisory data',
+          }
+        : {
+            wrap: 'bg-gold/30 text-navy border-gold',
+            dot: 'bg-gold',
+            label: 'AI knowledge',
+          }
   return (
     <div
-      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs sm:text-sm font-medium border ${
-        live
-          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-          : 'bg-gold/30 text-navy border-gold'
-      }`}
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs sm:text-sm font-medium border ${variant.wrap}`}
     >
       <span
-        className={`h-2 w-2 rounded-full ${live ? 'bg-emerald-500' : 'bg-gold'}`}
+        className={`h-2 w-2 rounded-full ${variant.dot}`}
         aria-hidden
       />
       <span className="hidden sm:inline">Data source: </span>
-      {live ? 'Live advisory data' : 'AI knowledge'}
+      {variant.label}
     </div>
   )
 }
@@ -178,14 +196,14 @@ export function BriefingSection({
 
   const sections = data.sections ?? {}
   const emergency = sections.emergency_contacts
-  const isLive = data.data_source === 'live'
+  const dataSource = data.data_source ?? 'ai_knowledge'
   const embassyLabel = `${homeCountry?.trim() || 'US'} Embassy`
   const embassyValue = emergency?.embassy ?? emergency?.us_embassy
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <DataSourceBadge live={isLive} />
+        <DataSourceBadge source={dataSource} />
         {onRefresh && (
           <button
             type="button"
