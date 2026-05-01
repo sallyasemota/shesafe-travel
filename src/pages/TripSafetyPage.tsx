@@ -21,6 +21,13 @@ import {
 } from '../lib/tripStatus'
 import type { RiskLevel, Trip } from '../types/trip'
 
+const SECTION_TABS = [
+  { id: 'status', label: 'Status' },
+  { id: 'briefing', label: 'Safety Briefing' },
+  { id: 'contacts', label: 'Contacts' },
+  { id: 'documents', label: 'Documents' },
+] as const
+
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -110,6 +117,43 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
       ? window.location.href
       : `https://shesafe-travel.vercel.app/trip/${trip.share_code}`
 
+  const [activeTab, setActiveTab] = useState<string>('status')
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+        if (visible.length > 0) {
+          setActiveTab(visible[0].target.id)
+        }
+      },
+      {
+        // Triggers when a section enters the upper portion of the viewport.
+        // top -80px accounts for the sticky tab bar; bottom -55% biases
+        // toward "the section near the top of what's visible".
+        rootMargin: '-80px 0px -55% 0px',
+        threshold: [0, 0.1, 0.5, 1],
+      },
+    )
+
+    SECTION_TABS.forEach((t) => {
+      const el = document.getElementById(t.id)
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  const handleTabClick = (id: string) => {
+    const el = document.getElementById(id)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      setActiveTab(id)
+    }
+  }
+
   const handleRefreshBriefing = async () => {
     await supabase
       .from('trips')
@@ -179,61 +223,75 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         </div>
       </header>
 
-      <div className="px-5 pb-12 max-w-2xl mx-auto space-y-5">
-        {isAlert && (
-          <>
-            <div className="rounded-2xl bg-red-600 text-white p-5 text-center shadow-lg">
-              <p className="text-xs uppercase tracking-widest font-bold">
-                ⚠ Emergency
-              </p>
-              <h2 className="text-xl sm:text-2xl font-bold mt-1 animate-pulse">
-                {trip.traveler_name} has not checked in
-              </h2>
-              <p className="text-sm mt-1 opacity-95">
-                {lastCheckIn
-                  ? `Last check-in: ${formatRelative(lastCheckIn.created_at, now)}`
-                  : trip.last_check_in
-                    ? `Timer started: ${formatRelative(trip.last_check_in, now)}`
-                    : 'No previous check-in on record'}
-              </p>
-              <p className="text-sm mt-2 opacity-90">
-                Try calling now. If you can't reach her, the info below can
-                help responders.
-              </p>
-            </div>
+      {isAlert && (
+        <div className="px-5 pt-3 max-w-2xl mx-auto">
+          <div className="rounded-2xl bg-red-600 text-white p-5 text-center shadow-lg">
+            <p className="text-xs uppercase tracking-widest font-bold">
+              ⚠ Emergency
+            </p>
+            <h2 className="text-xl sm:text-2xl font-bold mt-1 animate-pulse">
+              {trip.traveler_name} has not checked in
+            </h2>
+            <p className="text-sm mt-1 opacity-95">
+              {lastCheckIn
+                ? `Last check-in: ${formatRelative(lastCheckIn.created_at, now)}`
+                : trip.last_check_in
+                  ? `Timer started: ${formatRelative(trip.last_check_in, now)}`
+                  : 'No previous check-in on record'}
+            </p>
+            <p className="text-sm mt-2 opacity-90">
+              Try calling now. If you can't reach her, the info below can help
+              responders.
+            </p>
+          </div>
+        </div>
+      )}
 
-            <EmergencyActions trip={trip} urgent />
-            <IfIGoMissing trip={trip} />
-          </>
-        )}
+      <SectionTabs activeId={activeTab} onSelect={handleTabClick} />
 
-        <TripStatusDisplay trip={trip} checkIns={checkIns} />
+      <div className="px-5 pt-6 pb-12 max-w-2xl mx-auto space-y-8">
+        <section id="status" className="scroll-mt-20 space-y-5">
+          <TripStatusDisplay trip={trip} checkIns={checkIns} />
 
-        {traveler && (
-          <Section title="Your check-in timer">
-            <CheckInTimer trip={trip} visualStatus={visualStatus} />
+          {traveler && (
+            <Section title="Your check-in timer">
+              <CheckInTimer trip={trip} visualStatus={visualStatus} />
+            </Section>
+          )}
+
+          {(checkIns.length > 0 || trip.check_in_status === 'active') && (
+            <Section title="Check-in history">
+              <CheckInHistoryList checkIns={checkIns} />
+            </Section>
+          )}
+        </section>
+
+        <section id="briefing" className="scroll-mt-20">
+          <Section title="AI safety briefing">
+            <BriefingSection
+              data={trip.briefing_data}
+              homeCountry={trip.traveler_home_country}
+              onRefresh={handleRefreshBriefing}
+            />
           </Section>
-        )}
+        </section>
 
-        {!isAlert && <EmergencyActions trip={trip} urgent={false} />}
+        <section id="contacts" className="scroll-mt-20 space-y-5">
+          {isAlert ? (
+            <>
+              <EmergencyActions trip={trip} urgent />
+              <IfIGoMissing trip={trip} />
+            </>
+          ) : (
+            <EmergencyActions trip={trip} urgent={false} />
+          )}
+        </section>
 
-        {(checkIns.length > 0 || trip.check_in_status === 'active') && (
-          <Section title="Check-in history">
-            <CheckInHistoryList checkIns={checkIns} />
+        <section id="documents" className="scroll-mt-20">
+          <Section title="Offline access">
+            <PDFDownloads trip={trip} />
           </Section>
-        )}
-
-        <Section title="AI safety briefing">
-          <BriefingSection
-            data={trip.briefing_data}
-            homeCountry={trip.traveler_home_country}
-            onRefresh={handleRefreshBriefing}
-          />
-        </Section>
-
-        <Section title="Offline access">
-          <PDFDownloads trip={trip} />
-        </Section>
+        </section>
       </div>
 
       <footer className="px-5 pb-10 max-w-2xl mx-auto text-center space-y-1">
@@ -334,6 +392,52 @@ function RiskBadge({ level }: { level: RiskLevel }) {
       <span className={`h-2 w-2 rounded-full ${style.dot}`} aria-hidden />
       {level} risk
     </span>
+  )
+}
+
+function SectionTabs({
+  activeId,
+  onSelect,
+}: {
+  activeId: string
+  onSelect: (id: string) => void
+}) {
+  return (
+    <nav
+      aria-label="Trip page sections"
+      className="sticky top-0 z-30 bg-cream/95 backdrop-blur-sm border-b border-navy/10 shadow-[0_2px_12px_rgba(61,64,91,0.05)]"
+    >
+      <div className="max-w-2xl mx-auto px-3 sm:px-5">
+        <ul
+          role="tablist"
+          className="flex gap-0 overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+        >
+          {SECTION_TABS.map((t) => {
+            const active = activeId === t.id
+            return (
+              <li key={t.id} className="flex-shrink-0">
+                <a
+                  href={`#${t.id}`}
+                  role="tab"
+                  aria-selected={active}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onSelect(t.id)
+                  }}
+                  className={`block px-3 sm:px-4 py-3 text-sm font-medium border-b-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/40 focus-visible:ring-inset rounded-sm ${
+                    active
+                      ? 'text-coral border-coral'
+                      : 'text-navy/65 border-transparent hover:text-navy'
+                  }`}
+                >
+                  {t.label}
+                </a>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    </nav>
   )
 }
 
