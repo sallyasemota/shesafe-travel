@@ -14,7 +14,13 @@ function formatClock(iso: string, nowMs: number): string {
   })
 }
 
-export function CheckInHistoryList({ checkIns }: { checkIns: CheckIn[] }) {
+export function CheckInHistoryList({
+  checkIns,
+  travelerName,
+}: {
+  checkIns: CheckIn[]
+  travelerName?: string
+}) {
   const now = useNow(60_000)
 
   if (checkIns.length === 0) {
@@ -32,7 +38,8 @@ export function CheckInHistoryList({ checkIns }: { checkIns: CheckIn[] }) {
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-navy">
               <SpeechIcon className="w-3.5 h-3.5 text-coral/80 shrink-0" />
-              Checked in at {formatClock(c.created_at, now)}
+              {travelerName ? `${travelerName} checked in` : 'Checked in'} at{' '}
+              {formatClock(c.created_at, now)}
             </span>
             <span className="text-xs text-navy/55">
               {formatRelative(c.created_at, now)}

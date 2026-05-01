@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCheckInActions } from '../hooks/useCheckInActions'
 import { useCheckInHistory } from '../hooks/useCheckInHistory'
 import { useNow } from '../hooks/useNow'
@@ -54,11 +54,26 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
   const checkIns = useCheckInHistory(trip.id, trip.share_code)
   const actions = useCheckInActions(trip)
 
-  const [message, setMessage] = useState('')
-  const [busy, setBusy] = useState<'checkin' | 'extend' | null>(null)
+  const [busy, setBusy] = useState<'checkin' | 'extend' | 'send' | null>(null)
   const [justCheckedIn, setJustCheckedIn] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Optional follow-up prompt: appears after I'm Safe is tapped, lets Sofia
+  // add context to her circle. The check-in itself already wrote to the DB
+  // and reset the timer — this is purely additive.
+  const [showPrompt, setShowPrompt] = useState(false)
+  const [promptMessage, setPromptMessage] = useState('')
+  const promptTimerRef = useRef<number | null>(null)
+
+  const clearPromptTimer = () => {
+    if (promptTimerRef.current !== null) {
+      window.clearTimeout(promptTimerRef.current)
+      promptTimerRef.current = null
+    }
+  }
+
+  useEffect(() => clearPromptTimer, [])
 
   const expiresMs = trip.timer_expires_at
     ? new Date(trip.timer_expires_at).getTime()
@@ -70,7 +85,7 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
   }
 
   const wrap =
-    (key: 'checkin' | 'extend', fn: () => Promise<void>) =>
+    (key: 'checkin' | 'extend' | 'send', fn: () => Promise<void>) =>
     async () => {
       if (busy) return
       setError(null)
@@ -84,13 +99,40 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
       }
     }
 
+  // I'm Safe writes a check-in row WITH NO MESSAGE and resets the timer.
+  // Maria sees "Sofia checked in at HH:MM" immediately. The follow-up
+  // prompt is offered separately — message is never a gate on safety.
   const handleCheckIn = wrap('checkin', async () => {
-    await actions.checkIn(message)
-    setMessage('')
+    await actions.checkIn(null)
     setJustCheckedIn(true)
     window.setTimeout(() => setJustCheckedIn(false), 2200)
-    showToast('Check-in sent! Maria and Priya can see you’re safe.')
+    setPromptMessage('')
+    setShowPrompt(true)
+    clearPromptTimer()
+    promptTimerRef.current = window.setTimeout(() => {
+      setShowPrompt(false)
+      promptTimerRef.current = null
+    }, 30_000)
   })
+
+  // Send the optional context message as a second check-in (anon RLS
+  // doesn't allow UPDATE on check_ins, so we append a row). Maria sees
+  // it as a new history entry with the chat bubble.
+  const handleSendPrompt = wrap('send', async () => {
+    const text = promptMessage.trim()
+    if (!text) return
+    await actions.checkIn(text)
+    clearPromptTimer()
+    setShowPrompt(false)
+    setPromptMessage('')
+    showToast('Sent! Your circle can see your note.')
+  })
+
+  const handleDismissPrompt = () => {
+    clearPromptTimer()
+    setShowPrompt(false)
+    setPromptMessage('')
+  }
 
   // Inline +30 min so we don't need to thread a new method through
   // useCheckInActions just for one button.
@@ -208,15 +250,6 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
           )}
         </div>
 
-        <input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Add a note — e.g. Just arrived at the riad!"
-          maxLength={140}
-          className="w-full rounded-full border border-navy/15 bg-white px-5 py-3 text-[15px] text-navy placeholder-navy/40 focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/30"
-        />
-
         <button
           type="button"
           onClick={handleExtendThirty}
@@ -226,6 +259,52 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
           <span aria-hidden>⏰</span>
           {busy === 'extend' ? 'Adding…' : 'Add Extra Time (+30 min)'}
         </button>
+
+        {showPrompt && (
+          <div className="rounded-2xl bg-coral/10 border border-coral/30 p-4 sm:p-5 space-y-3 [animation:slide-up_320ms_ease-out]">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold text-navy">
+                  Let your circle know where you are
+                </h3>
+                <p className="text-xs text-navy/60 mt-0.5">
+                  Optional — adds context to your check-in.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleDismissPrompt}
+                aria-label="Dismiss"
+                className="shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full text-navy/45 hover:text-navy/80 hover:bg-navy/[0.05] transition-colors text-lg leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <input
+              type="text"
+              value={promptMessage}
+              onChange={(e) => setPromptMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && promptMessage.trim()) {
+                  e.preventDefault()
+                  void handleSendPrompt()
+                }
+              }}
+              placeholder="e.g. At the hotel, heading to dinner soon"
+              maxLength={140}
+              autoFocus
+              className="w-full rounded-full border border-navy/15 bg-white px-5 py-3 text-[15px] text-navy placeholder-navy/40 focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/30"
+            />
+            <button
+              type="button"
+              onClick={handleSendPrompt}
+              disabled={busy !== null || !promptMessage.trim()}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-coral text-cream font-semibold text-sm px-5 py-3 shadow-[0_4px_14px_rgba(224,122,95,0.25)] hover:opacity-90 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {busy === 'send' ? 'Sending…' : 'Send'}
+            </button>
+          </div>
+        )}
 
         {error && (
           <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">

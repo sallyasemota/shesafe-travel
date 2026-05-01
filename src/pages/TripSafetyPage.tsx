@@ -481,7 +481,10 @@ function TripContactView({
 
           {(checkIns.length > 0 || trip.check_in_status === 'active') && (
             <Section title="Check-in history">
-              <CheckInHistoryList checkIns={checkIns} />
+              <CheckInHistoryList
+                checkIns={checkIns}
+                travelerName={trip.traveler_name}
+              />
             </Section>
           )}
         </section>
