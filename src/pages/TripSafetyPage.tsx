@@ -377,6 +377,11 @@ function TripContactView({
               <EmergencyActions trip={trip} urgent />
               <IfIGoMissing trip={trip} />
             </>
+          ) : visualStatus === 'orange' ? (
+            <>
+              <OverdueNotice travelerName={trip.traveler_name} />
+              <EmergencyActions trip={trip} urgent={false} />
+            </>
           ) : (
             <EmergencyActions trip={trip} urgent={false} />
           )}
@@ -517,6 +522,23 @@ function SectionTabs({
         </ul>
       </div>
     </nav>
+  )
+}
+
+function OverdueNotice({ travelerName }: { travelerName: string }) {
+  return (
+    <div className="rounded-2xl border border-orange-300 bg-orange-50 px-5 py-4 flex items-start gap-3">
+      <span className="text-orange-600 text-xl shrink-0" aria-hidden>
+        ⚠
+      </span>
+      <p className="text-sm text-orange-900 leading-relaxed">
+        <span className="font-semibold">
+          {travelerName}'s check-in is overdue.
+        </span>{' '}
+        Try reaching her — if you can't get through, the alert below will
+        unlock additional emergency info.
+      </p>
+    </div>
   )
 }
 

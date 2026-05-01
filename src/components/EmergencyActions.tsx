@@ -20,11 +20,14 @@ interface ActionItem {
   tel: string
 }
 
-function buildActions(trip: Trip): ActionItem[] {
+function buildActions(trip: Trip, urgent: boolean): ActionItem[] {
   const items: ActionItem[] = []
   const emergency = trip.briefing_data?.sections?.emergency_contacts
 
-  if (trip.traveler_phone) {
+  // Personal contacts (traveler + emergency contacts) only surface in the
+  // urgent reveal — calm mode shows just emergency services so the page
+  // stays low-stakes when she's checked in or just running late.
+  if (urgent && trip.traveler_phone) {
     items.push({
       key: 'traveler',
       label: `Call ${trip.traveler_name}`,
@@ -45,6 +48,30 @@ function buildActions(trip: Trip): ActionItem[] {
     }
   }
 
+  if (emergency?.ambulance) {
+    const tel = extractTel(emergency.ambulance)
+    if (tel) {
+      items.push({
+        key: 'ambulance',
+        label: 'Ambulance',
+        detail: emergency.ambulance,
+        tel,
+      })
+    }
+  }
+
+  if (emergency?.fire) {
+    const tel = extractTel(emergency.fire)
+    if (tel) {
+      items.push({
+        key: 'fire',
+        label: 'Fire',
+        detail: emergency.fire,
+        tel,
+      })
+    }
+  }
+
   const embassyValue = emergency?.embassy ?? emergency?.us_embassy
   if (embassyValue) {
     const tel = extractTel(embassyValue)
@@ -59,17 +86,19 @@ function buildActions(trip: Trip): ActionItem[] {
     }
   }
 
-  const contacts = (trip.emergency_contacts ?? []).filter(
-    (c): c is EmergencyContact => Boolean(c?.name && c?.phone),
-  )
-  contacts.forEach((c, i) => {
-    items.push({
-      key: `contact-${i}`,
-      label: `Call ${c.name}`,
-      detail: c.relationship ? `${c.relationship} — ${c.phone}` : c.phone,
-      tel: telHref(c.phone),
+  if (urgent) {
+    const contacts = (trip.emergency_contacts ?? []).filter(
+      (c): c is EmergencyContact => Boolean(c?.name && c?.phone),
+    )
+    contacts.forEach((c, i) => {
+      items.push({
+        key: `contact-${i}`,
+        label: `Call ${c.name}`,
+        detail: c.relationship ? `${c.relationship} — ${c.phone}` : c.phone,
+        tel: telHref(c.phone),
+      })
     })
-  })
+  }
 
   return items
 }
@@ -81,7 +110,7 @@ export function EmergencyActions({
   trip: Trip
   urgent: boolean
 }) {
-  const actions = buildActions(trip)
+  const actions = buildActions(trip, urgent)
   if (actions.length === 0) return null
 
   if (urgent) {
@@ -127,7 +156,7 @@ export function EmergencyActions({
   return (
     <div className="rounded-2xl bg-white border border-navy/10 shadow-sm p-5">
       <h2 className="text-base uppercase tracking-wider text-navy/60 font-semibold mb-3">
-        Emergency actions
+        Emergency services
       </h2>
       <ul className="space-y-2">
         {actions.map((a) => (
