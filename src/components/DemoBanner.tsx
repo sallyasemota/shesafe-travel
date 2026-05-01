@@ -2,7 +2,17 @@ import { useState } from 'react'
 import { useCheckInActions } from '../hooks/useCheckInActions'
 import type { Trip } from '../types/trip'
 
-export function DemoBanner({ trip }: { trip: Trip }) {
+export type DemoViewerMode = 'mom' | 'sofia'
+
+export function DemoBanner({
+  trip,
+  viewerMode,
+  onChangeViewerMode,
+}: {
+  trip: Trip
+  viewerMode: DemoViewerMode
+  onChangeViewerMode: (mode: DemoViewerMode) => void
+}) {
   const actions = useCheckInActions(trip)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -124,8 +134,67 @@ export function DemoBanner({ trip }: { trip: Trip }) {
             controls only · won't appear on trips you create.
           </p>
         </div>
+
+        {/* Section 3 — viewer toggle (mom vs traveler) */}
+        <div className="border-t border-gold/40 pt-6 space-y-3">
+          <p className="text-sm font-semibold text-navy flex items-center gap-2">
+            <span aria-hidden>👀</span>
+            Viewing as:
+          </p>
+          <div
+            role="tablist"
+            aria-label="Switch between traveler and contact view"
+            className="grid grid-cols-2 gap-2"
+          >
+            <ViewerPill
+              active={viewerMode === 'mom'}
+              onClick={() => onChangeViewerMode('mom')}
+              label="Maria (mom)"
+              sublabel="What contacts see"
+            />
+            <ViewerPill
+              active={viewerMode === 'sofia'}
+              onClick={() => onChangeViewerMode('sofia')}
+              label="Sofia (traveler)"
+              sublabel="The check-in screen"
+            />
+          </div>
+        </div>
       </div>
     </div>
+  )
+}
+
+function ViewerPill({
+  active,
+  onClick,
+  label,
+  sublabel,
+}: {
+  active: boolean
+  onClick: () => void
+  label: string
+  sublabel: string
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center gap-0.5 rounded-2xl border px-4 py-3 text-sm font-semibold transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream focus-visible:ring-coral/50 ${
+        active
+          ? 'bg-coral text-cream border-coral shadow-[0_4px_18px_rgba(224,122,95,0.30)]'
+          : 'bg-white text-coral border-coral/50 hover:bg-coral/5'
+      }`}
+    >
+      <span>{label}</span>
+      <span
+        className={`text-[11px] font-medium tracking-wide ${active ? 'text-cream/80' : 'text-navy/55'}`}
+      >
+        {sublabel}
+      </span>
+    </button>
   )
 }
 

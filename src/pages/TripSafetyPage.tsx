@@ -4,9 +4,10 @@ import { BriefingSection } from '../components/BriefingSection'
 import { CheckInHistoryList } from '../components/CheckInHistoryList'
 import { CheckInTimer } from '../components/CheckInTimer'
 import { CheckInWarningOverlay } from '../components/CheckInWarningOverlay'
-import { DemoBanner } from '../components/DemoBanner'
+import { DemoBanner, type DemoViewerMode } from '../components/DemoBanner'
 import { DEMO_BRIEFING, DEMO_SHARE_CODE } from '../lib/demoBriefing'
 import { EmergencyActions } from '../components/EmergencyActions'
+import { TravelerCheckInView } from '../components/TravelerCheckInView'
 import { PDFDownloads } from '../components/PDFDownloads'
 import { ShareButton } from '../components/ShareButton'
 import { TripStatusDisplay } from '../components/TripStatusDisplay'
@@ -91,6 +92,10 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
   const visualStatus = computeVisualStatus(trip, now)
   const checkIns = useCheckInHistory(trip.id)
   const actions = useCheckInActions(trip)
+
+  const isDemo = trip.share_code === DEMO_SHARE_CODE
+  const [viewerMode, setViewerMode] = useState<DemoViewerMode>('mom')
+  const showTravelerView = isDemo && viewerMode === 'sofia'
 
   const [warningDismissed, setWarningDismissed] = useState(false)
   const previousStatusRef = useRef<VisualStatus>(visualStatus)
@@ -202,8 +207,88 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         </div>
       </nav>
 
-      {trip.share_code === 'marrakech-demo' && <DemoBanner trip={trip} />}
+      {isDemo && (
+        <DemoBanner
+          trip={trip}
+          viewerMode={viewerMode}
+          onChangeViewerMode={setViewerMode}
+        />
+      )}
 
+      {showTravelerView ? (
+        <TravelerCheckInView trip={trip} />
+      ) : (
+        <TripContactView
+          trip={trip}
+          checkIns={checkIns}
+          now={now}
+          visualStatus={visualStatus}
+          isAlert={isAlert}
+          lastCheckIn={lastCheckIn}
+          pageUrl={pageUrl}
+          traveler={traveler}
+          activeTab={activeTab}
+          onTabClick={handleTabClick}
+          onRefreshBriefing={handleRefreshBriefing}
+        />
+      )}
+
+      <footer className="px-5 pb-10 pt-6 max-w-2xl mx-auto text-center space-y-1.5">
+        <p className="text-sm font-medium text-navy/70">
+          Powered by SheSafe Travel
+        </p>
+        <p className="text-xs text-navy/55">
+          Built by{' '}
+          <span className="font-semibold text-navy/75">Sally Asemota</span>
+          <span className="text-navy/30 mx-1.5" aria-hidden>
+            ·
+          </span>
+          Built for Women Build AI Build-A-Thon 2026
+        </p>
+        <p className="text-xs text-navy/45">
+          Powered by Claude, Supabase, Firecrawl
+        </p>
+      </footer>
+
+      {showWarningOverlay && trip.timer_expires_at && (
+        <CheckInWarningOverlay
+          expiresAtIso={trip.timer_expires_at}
+          onCheckIn={() => actions.checkIn()}
+          onAddHour={() => actions.addOneHour()}
+          onDismiss={() => setWarningDismissed(true)}
+        />
+      )}
+    </main>
+  )
+}
+
+function TripContactView({
+  trip,
+  checkIns,
+  now,
+  visualStatus,
+  isAlert,
+  lastCheckIn,
+  pageUrl,
+  traveler,
+  activeTab,
+  onTabClick,
+  onRefreshBriefing,
+}: {
+  trip: Trip
+  checkIns: ReturnType<typeof useCheckInHistory>
+  now: number
+  visualStatus: VisualStatus
+  isAlert: boolean
+  lastCheckIn: ReturnType<typeof useCheckInHistory>[number] | undefined
+  pageUrl: string
+  traveler: boolean
+  activeTab: string
+  onTabClick: (id: string) => void
+  onRefreshBriefing: () => Promise<void>
+}) {
+  return (
+    <>
       <header className="px-5 pt-8 pb-6 max-w-2xl mx-auto">
         <h1 className="font-serif font-medium text-[28px] sm:text-3xl md:text-5xl leading-[1.15] tracking-[-0.015em] break-words">
           {trip.traveler_name}'s trip to{' '}
@@ -249,7 +334,7 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         </div>
       )}
 
-      <SectionTabs activeId={activeTab} onSelect={handleTabClick} />
+      <SectionTabs activeId={activeTab} onSelect={onTabClick} />
 
       <div className="px-5 pt-6 pb-12 max-w-2xl mx-auto space-y-8">
         <section id="status" className="scroll-mt-20 space-y-5">
@@ -280,7 +365,7 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
               onRefresh={
                 trip.share_code === DEMO_SHARE_CODE
                   ? undefined
-                  : handleRefreshBriefing
+                  : onRefreshBriefing
               }
             />
           </Section>
@@ -303,31 +388,7 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
           </Section>
         </section>
       </div>
-
-      <footer className="px-5 pb-10 pt-6 max-w-2xl mx-auto text-center space-y-1.5">
-        <p className="text-sm font-medium text-navy/70">
-          Powered by SheSafe Travel
-        </p>
-        <p className="text-xs text-navy/55">
-          Built by{' '}
-          <span className="font-semibold text-navy/75">Sally Asemota</span>
-          <span className="text-navy/30 mx-1.5" aria-hidden>·</span>
-          Built for Women Build AI Build-A-Thon 2026
-        </p>
-        <p className="text-xs text-navy/45">
-          Powered by Claude, Supabase, Firecrawl
-        </p>
-      </footer>
-
-      {showWarningOverlay && trip.timer_expires_at && (
-        <CheckInWarningOverlay
-          expiresAtIso={trip.timer_expires_at}
-          onCheckIn={() => actions.checkIn()}
-          onAddHour={() => actions.addOneHour()}
-          onDismiss={() => setWarningDismissed(true)}
-        />
-      )}
-    </main>
+    </>
   )
 }
 
