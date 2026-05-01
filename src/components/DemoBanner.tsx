@@ -186,9 +186,9 @@ function ViewerPill({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-0.5 rounded-2xl border px-4 py-3 text-sm font-semibold transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream focus-visible:ring-coral/50 ${
+      className={`flex flex-col items-center justify-center gap-0.5 rounded-2xl border px-4 py-3 text-sm font-semibold transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream focus-visible:ring-orange-400/60 ${
         active
-          ? 'bg-coral text-cream border-coral shadow-[0_4px_18px_rgba(224,122,95,0.30)]'
+          ? 'bg-orange-500 text-white border-orange-500 shadow-[0_4px_18px_rgba(249,115,22,0.30)]'
           : 'bg-transparent text-coral border-coral hover:bg-coral/5'
       }`}
     >
@@ -199,7 +199,7 @@ function ViewerPill({
         {label}
       </span>
       <span
-        className={`text-[11px] font-medium tracking-wide ${active ? 'text-cream/80' : 'text-navy/55'}`}
+        className={`text-[11px] font-medium tracking-wide ${active ? 'text-white/85' : 'text-navy/55'}`}
       >
         {sublabel}
       </span>

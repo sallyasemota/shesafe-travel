@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useCheckInActions } from '../hooks/useCheckInActions'
 import { useCheckInHistory } from '../hooks/useCheckInHistory'
 import { useNow } from '../hooks/useNow'
+import { supabase } from '../lib/supabase'
 import {
   computeVisualStatus,
   formatCountdown,
@@ -21,26 +22,29 @@ const COUNTDOWN_TONE: Record<
 }
 
 function formatTripDateRange(startIso: string, endIso: string): string {
-  const start = new Date(startIso)
-  const end = new Date(endIso)
-  const sameMonth =
-    start.getUTCMonth() === end.getUTCMonth() &&
-    start.getUTCFullYear() === end.getUTCFullYear()
-  const month = start.toLocaleDateString('en-US', {
-    month: 'short',
-    timeZone: 'UTC',
-  })
-  const startDay = start.getUTCDate()
-  const endDay = end.getUTCDate()
-  const year = end.getUTCFullYear()
-  if (sameMonth) {
-    return `${month} ${startDay}–${endDay}, ${year}`
+  try {
+    const start = new Date(startIso)
+    const end = new Date(endIso)
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return ''
+    const sameMonth =
+      start.getUTCMonth() === end.getUTCMonth() &&
+      start.getUTCFullYear() === end.getUTCFullYear()
+    const month = start.toLocaleDateString('en-US', {
+      month: 'short',
+      timeZone: 'UTC',
+    })
+    const startDay = start.getUTCDate()
+    const endDay = end.getUTCDate()
+    const year = end.getUTCFullYear()
+    if (sameMonth) return `${month} ${startDay}–${endDay}, ${year}`
+    const endMonth = end.toLocaleDateString('en-US', {
+      month: 'short',
+      timeZone: 'UTC',
+    })
+    return `${month} ${startDay} – ${endMonth} ${endDay}, ${year}`
+  } catch {
+    return ''
   }
-  const endMonth = end.toLocaleDateString('en-US', {
-    month: 'short',
-    timeZone: 'UTC',
-  })
-  return `${month} ${startDay} – ${endMonth} ${endDay}, ${year}`
 }
 
 export function TravelerCheckInView({ trip }: { trip: Trip }) {
@@ -50,7 +54,7 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
   const actions = useCheckInActions(trip)
 
   const [message, setMessage] = useState('')
-  const [busy, setBusy] = useState<'checkin' | 'extend' | 'reset' | null>(null)
+  const [busy, setBusy] = useState<'checkin' | 'extend' | null>(null)
   const [justCheckedIn, setJustCheckedIn] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -65,7 +69,7 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
   }
 
   const wrap =
-    (key: 'checkin' | 'extend' | 'reset', fn: () => Promise<void>) =>
+    (key: 'checkin' | 'extend', fn: () => Promise<void>) =>
     async () => {
       if (busy) return
       setError(null)
@@ -87,14 +91,19 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
     showToast('Check-in sent! Maria and Priya can see you’re safe.')
   })
 
-  const handleAddHour = wrap('extend', async () => {
-    await actions.addOneHour()
-    showToast('Timer extended by 1 hour.')
-  })
-
-  const handlePlansChanged = wrap('reset', async () => {
-    await actions.startTimer(4 * 60 * 60_000)
-    showToast('New 4-hour timer started. Maria sees the update live.')
+  // Inline +30 min so we don't need to thread a new method through
+  // useCheckInActions just for one button.
+  const handleExtendThirty = wrap('extend', async () => {
+    if (!trip.timer_expires_at) return
+    const newExpires = new Date(
+      new Date(trip.timer_expires_at).getTime() + 30 * 60_000,
+    )
+    const { error: dbErr } = await supabase
+      .from('trips')
+      .update({ timer_expires_at: newExpires.toISOString() })
+      .eq('id', trip.id)
+    if (dbErr) throw dbErr
+    showToast('Added 30 minutes. Maria sees the new countdown live.')
   })
 
   return (
@@ -195,26 +204,15 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
           className="w-full rounded-full border border-navy/15 bg-white px-5 py-3 text-[15px] text-navy placeholder-navy/40 focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/30"
         />
 
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={handleAddHour}
-            disabled={busy !== null || !trip.timer_expires_at}
-            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-coral text-coral bg-transparent font-semibold text-sm px-4 py-3 hover:bg-coral/5 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span aria-hidden>⏰</span>
-            {busy === 'extend' ? 'Extending…' : 'Add 1 hour'}
-          </button>
-          <button
-            type="button"
-            onClick={handlePlansChanged}
-            disabled={busy !== null}
-            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-coral text-coral bg-transparent font-semibold text-sm px-4 py-3 hover:bg-coral/5 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span aria-hidden>📝</span>
-            {busy === 'reset' ? 'Resetting…' : 'Plans changed'}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleExtendThirty}
+          disabled={busy !== null || !trip.timer_expires_at}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-coral text-coral bg-transparent font-semibold text-sm px-4 py-3 hover:bg-coral/5 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span aria-hidden>⏰</span>
+          {busy === 'extend' ? 'Adding…' : 'Add Extra Time (+30 min)'}
+        </button>
 
         {error && (
           <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2">

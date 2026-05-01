@@ -7,6 +7,7 @@ import { CheckInWarningOverlay } from '../components/CheckInWarningOverlay'
 import { DemoBanner, type DemoViewerMode } from '../components/DemoBanner'
 import { DEMO_BRIEFING, DEMO_SHARE_CODE } from '../lib/demoBriefing'
 import { EmergencyActions } from '../components/EmergencyActions'
+import { ErrorBoundary } from '../components/ErrorBoundary'
 import { TravelerCheckInView } from '../components/TravelerCheckInView'
 import { PDFDownloads } from '../components/PDFDownloads'
 import { ShareButton } from '../components/ShareButton'
@@ -216,7 +217,19 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
       )}
 
       {showTravelerView ? (
-        <TravelerCheckInView trip={trip} />
+        <ErrorBoundary
+          fallback={
+            <div className="px-5 pt-8 pb-12 max-w-2xl mx-auto text-center">
+              <p className="text-sm text-navy/70">
+                Couldn't load the traveler view. Switch back to{' '}
+                <span className="font-semibold">Maria (mom)</span> in the demo
+                controls above to keep going.
+              </p>
+            </div>
+          }
+        >
+          <TravelerCheckInView trip={trip} />
+        </ErrorBoundary>
       ) : (
         <TripContactView
           trip={trip}
