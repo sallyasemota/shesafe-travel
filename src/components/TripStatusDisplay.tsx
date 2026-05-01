@@ -68,7 +68,7 @@ function statusLabel(
     case 'yellow': {
       const mins = Math.floor(remainingMs / 60_000)
       const secs = Math.floor((remainingMs % 60_000) / 1000)
-      return `Timer running — ${mins}:${secs.toString().padStart(2, '0')} remaining`
+      return `Timer running · ${mins}:${secs.toString().padStart(2, '0')} remaining`
     }
     case 'orange': {
       const mins = minsFromMs(overdueMs)
@@ -79,8 +79,8 @@ function statusLabel(
     case 'red': {
       const mins = minsFromMs(overdueMs)
       return mins === 1
-        ? 'ALERT — No check-in for 1 min'
-        : `ALERT — No check-in for ${mins} min`
+        ? 'ALERT · No check-in for 1 min'
+        : `ALERT · No check-in for ${mins} min`
     }
   }
 }
@@ -150,7 +150,7 @@ export function TripStatusDisplay({
             <span className="font-semibold text-navy/80">
               {trip.traveler_name}
             </span>{' '}
-            set a {trip.check_in_interval_hours}-hour check-in window.
+            set a {trip.check_in_interval_hours} hour check-in window.
           </p>
         )}
         <p className="text-xs uppercase tracking-wider text-navy/60 mb-1">
@@ -162,14 +162,14 @@ export function TripStatusDisplay({
           {formatCountdown(expiresMs, now)}
         </p>
         <p className="mt-2 text-xs text-navy/55 leading-relaxed max-w-sm mx-auto">
-          If the timer reaches zero without a check-in,{' '}
-          {trip.traveler_name}'s status changes and you'll be notified.
+          If the timer hits zero without a check-in,{' '}
+          {trip.traveler_name}'s status changes and you get notified.
         </p>
       </div>
 
       {status === 'yellow' && (
         <div className="rounded-lg bg-yellow-100 border border-yellow-300 px-4 py-2 text-sm text-yellow-900">
-          Check in soon — your timer is almost up.
+          Check in soon. Your timer is almost up.
         </div>
       )}
       {status === 'orange' && (
@@ -179,7 +179,7 @@ export function TripStatusDisplay({
       )}
       {status === 'red' && (
         <div className="rounded-lg bg-red-600 text-white px-4 py-3 text-base font-bold text-center animate-pulse">
-          🚨 ALERT — Check-in missed past grace period
+          🚨 ALERT · Check-in missed past grace period
         </div>
       )}
 

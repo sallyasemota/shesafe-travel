@@ -199,7 +199,7 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
             {formatCountdown(expiresMs, now)}
           </p>
           <p className="text-xs text-navy/55 leading-relaxed max-w-sm mx-auto pt-1">
-            Tap "I'm Safe" before the timer runs out to let your contacts
+            Tap "I'm Safe" before the timer runs out to let your people
             know you're okay.
           </p>
           <p className="text-sm text-navy/65 pt-2">
@@ -268,7 +268,7 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
                   Let your circle know where you are
                 </h3>
                 <p className="text-xs text-navy/60 mt-0.5">
-                  Optional — adds context to your check-in.
+                  Optional. Adds context to your check-in.
                 </p>
               </div>
               <button
@@ -319,7 +319,7 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
         </h2>
         {checkIns.length === 0 ? (
           <p className="text-sm text-navy/55 italic">
-            No check-ins yet — your first one will show up here.
+            No check-ins yet. Your first one will show up here.
           </p>
         ) : (
           <ul className="space-y-3">

@@ -13,7 +13,7 @@ export default function NotFound() {
           </Link>
           <Link
             to="/"
-            aria-label="SheSafe Travel — home"
+            aria-label="SheSafe Travel home"
             className="font-serif font-medium text-xl tracking-tight hover:opacity-80 transition-opacity"
           >
             SheSafe<span className="italic text-coral"> Travel</span>
@@ -62,10 +62,6 @@ export default function NotFound() {
           >
             Sally Asemota
           </a>
-          <span className="text-navy/30 mx-1.5" aria-hidden>
-            ·
-          </span>
-          Built for Women Build AI Build-A-Thon 2026
         </p>
         <p className="text-xs text-navy/45">
           Powered by Claude, Supabase, Firecrawl

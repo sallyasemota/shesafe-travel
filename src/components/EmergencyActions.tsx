@@ -97,7 +97,7 @@ function buildActions(trip: Trip, urgent: boolean): ActionItem[] {
     items.push({
       key: `contact-${i}`,
       label: `Call ${c.name}`,
-      detail: c.relationship ? `${c.relationship} — ${c.phone}` : c.phone,
+      detail: c.relationship ? `${c.relationship} · ${c.phone}` : c.phone,
       tel: telHref(c.phone),
     })
   })
@@ -123,7 +123,7 @@ export function EmergencyActions({
             🚨
           </span>
           <h2 className="text-base sm:text-lg font-bold text-red-700 uppercase tracking-wide">
-            Call for help — now
+            Call for help now
           </h2>
         </div>
         <ul className="space-y-3">

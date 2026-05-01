@@ -130,7 +130,7 @@ export default function MyTrips() {
           </Link>
           <Link
             to="/"
-            aria-label="SheSafe Travel — home"
+            aria-label="SheSafe Travel home"
             className="font-serif font-medium text-xl tracking-tight hover:opacity-80 transition-opacity"
           >
             SheSafe<span className="italic text-coral"> Travel</span>
@@ -148,7 +148,7 @@ export default function MyTrips() {
           </h1>
           <p className="mt-4 text-base text-navy/70 max-w-md mx-auto leading-relaxed">
             Trips you've created on this device. Open one to check in or
-            re-share the link.
+            reshare the link.
           </p>
         </div>
 
@@ -200,10 +200,6 @@ export default function MyTrips() {
           >
             Sally Asemota
           </a>
-          <span className="text-navy/30 mx-1.5" aria-hidden>
-            ·
-          </span>
-          Built for Women Build AI Build-A-Thon 2026
         </p>
         <p className="text-xs text-navy/45">
           Powered by Claude, Supabase, Firecrawl

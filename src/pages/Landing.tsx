@@ -31,28 +31,19 @@ function Nav() {
         <Link
           to="/"
           className="hover:opacity-80 transition-opacity"
-          aria-label="SheSafe Travel — home"
+          aria-label="SheSafe Travel home"
         >
           <Wordmark size="md" />
         </Link>
-        <div className="flex items-center gap-3">
-          <span
-            className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-gold/25 border border-gold/50 px-3 py-1 text-[11px] font-semibold text-navy/80 tracking-wide"
-            title="Built for Women Build AI Build-A-Thon 2026"
-          >
-            <span aria-hidden>🏆</span>
-            Women Build AI 2026
+        <Link
+          to="/create"
+          className="text-sm font-medium text-navy hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/40 focus-visible:ring-offset-2 focus-visible:ring-offset-cream rounded-full px-3 py-1"
+        >
+          Create a trip{' '}
+          <span aria-hidden className="ml-0.5">
+            →
           </span>
-          <Link
-            to="/create"
-            className="text-sm font-medium text-navy hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/40 focus-visible:ring-offset-2 focus-visible:ring-offset-cream rounded-full px-3 py-1"
-          >
-            Create a trip{' '}
-            <span aria-hidden className="ml-0.5">
-              →
-            </span>
-          </Link>
-        </div>
+        </Link>
       </div>
     </header>
   )
@@ -70,12 +61,12 @@ function Hero() {
         <span className="italic text-coral">Travel connected.</span>
       </h1>
       <p className="mt-7 sm:mt-9 text-lg sm:text-xl text-navy/75 leading-relaxed max-w-2xl mx-auto">
-        One link keeps everyone who loves you in the loop. AI-powered safety
-        briefings, real-time check-ins, and instant emergency coordination —
-        through a single shareable URL.
+        One link keeps everyone who loves you in the loop. AI safety
+        briefings, real-time check-ins, and instant emergency coordination,
+        all through one shareable link.
       </p>
       <p className="mt-5 text-base sm:text-lg italic text-coral/80 max-w-xl mx-auto leading-relaxed">
-        Because "text me when you land" shouldn't be the only safety plan.
+        Because "text me when you land" shouldn't be your only safety plan.
       </p>
 
       <PhoneMockup />
@@ -145,13 +136,13 @@ function PhoneMockup() {
               03:47:21
             </p>
             <p className="mt-2 text-[11px] text-navy/65 italic">
-              Last check-in 12 min ago — "At the riad, all good."
+              Last check-in 12 min ago: "At the riad, all good."
             </p>
           </div>
         </div>
       </div>
       <p className="mt-3 text-[11px] text-navy/45 text-center">
-        Live preview — what mom sees from the link.
+        Live preview. What mom sees from the link.
       </p>
     </div>
   )
@@ -163,13 +154,13 @@ function HowItWorks() {
       n: '01',
       icon: '📍',
       title: 'Plan your trip',
-      body: 'Add your destination, travel dates, and the people you want kept in the loop. Optionally include passport, medical, and where you’re staying.',
+      body: 'Add your destination, travel dates, and the people you want in the loop. You can also include passport details, medical info, and where you’re staying.',
     },
     {
       n: '02',
       icon: '📱',
       title: 'Share one link',
-      body: 'Tap Send to contacts. Mom, your partner, anyone you trust gets a live page — no app to download, no account to create.',
+      body: 'Tap Send to contacts. Mom, your partner, your best friend… everyone gets one link that shows your live status.',
     },
     {
       n: '03',
@@ -226,7 +217,7 @@ function SocialProofStat() {
           72%
         </p>
         <p className="font-serif font-medium text-2xl sm:text-3xl text-navy leading-snug max-w-2xl mx-auto tracking-tight">
-          of women have traveled solo —{' '}
+          of women have traveled solo,{' '}
           <span className="italic">but most do it without a safety plan.</span>
         </p>
       </div>
@@ -240,25 +231,25 @@ function Features() {
       eyebrow: 'Feature 01',
       icon: '🔗',
       title: 'Shareable trip safety page',
-      body: 'Every trip lives at one URL. Anyone with the link sees real-time data — no install, no login, no code to enter. Mom keeps the page open; everything updates live.',
+      body: 'Every trip lives at one URL. Anyone with the link sees real-time data. No install, no login, no code to enter. Mom keeps the page open; everything updates live.',
     },
     {
       eyebrow: 'Feature 02',
       icon: '🛡️',
       title: 'AI safety briefing',
-      body: 'Claude generates a women-specific briefing for each destination — cultural norms, harassment patterns, transport, safe areas, local emergency numbers, key local-language phrases, and a color-coded risk level. Live State Department advisories when available.',
+      body: 'Claude generates a women-specific briefing for each destination: cultural norms, harassment patterns, transport tips, safe areas, local emergency numbers, key phrases in the local language, and a color-coded risk level. Live State Department advisories included when available.',
     },
     {
       eyebrow: 'Feature 03',
       icon: '⏱️',
       title: 'Check-in timer with escalation',
-      body: 'Pick a duration. Status flows green to yellow to orange to red as the timer ticks down. At red, the page transforms — an emergency banner with her last known check-in, full-width Call buttons for everyone in her safety circle, plus passport, medical, and hotel info revealed. All in real time, no refresh.',
+      body: 'Pick a check-in window. Status flows from green to yellow to orange to red as the timer counts down. When it hits red, the page transforms into an emergency view: her last known check-in, one-tap Call buttons for everyone in her safety circle, plus passport, medical, and hotel details revealed instantly. All live, no refresh needed.',
     },
     {
       eyebrow: 'Feature 04',
       icon: '📄',
       title: 'Offline & emergency PDFs',
-      body: 'Two downloadable packets: a printable safety packet for your pocket and an "If I Go Missing" packet to hand to authorities. Generated client-side so they work offline.',
+      body: 'Two downloadable packets: a printable safety card for your pocket and an "If I Go Missing" packet to hand to authorities. Generated on your device so they work offline.',
     },
   ]
   return (
@@ -309,7 +300,7 @@ function FinalCta() {
         Ready for your <span className="italic text-coral">next trip?</span>
       </h2>
       <p className="mt-5 text-lg text-navy/75 leading-relaxed">
-        Setup takes about 90 seconds. Mom gets one link.
+        Setup takes 90 seconds. Mom gets one link.
         <br className="hidden sm:block" />
         You get peace of mind.
       </p>
@@ -344,11 +335,7 @@ function SiteFooter() {
             </a>
           </span>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-navy/55">
-          <span>Built for Women Build AI Build-A-Thon 2026</span>
-          <span className="hidden sm:inline text-navy/20" aria-hidden>
-            ·
-          </span>
+        <div className="text-xs text-navy/55">
           <span>Powered by Claude, Supabase, Firecrawl</span>
         </div>
       </div>

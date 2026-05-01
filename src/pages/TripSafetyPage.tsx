@@ -1,35 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { BriefingSection } from '../components/BriefingSection'
 import { CheckInHistoryList } from '../components/CheckInHistoryList'
 import { CheckInTimer } from '../components/CheckInTimer'
 import { CheckInWarningOverlay } from '../components/CheckInWarningOverlay'
 import { DemoBanner, type DemoViewerMode } from '../components/DemoBanner'
-import { DEMO_BRIEFING, DEMO_SHARE_CODE } from '../lib/demoBriefing'
+import { DEMO_SHARE_CODE } from '../lib/demoBriefing'
 import { EmergencyActions } from '../components/EmergencyActions'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { TravelerCheckInView } from '../components/TravelerCheckInView'
-import { PDFDownloads } from '../components/PDFDownloads'
 import { ShareButton } from '../components/ShareButton'
 import { TripStatusDisplay } from '../components/TripStatusDisplay'
 import { useCheckInActions } from '../hooks/useCheckInActions'
 import { useCheckInHistory } from '../hooks/useCheckInHistory'
 import { useNow } from '../hooks/useNow'
 import { useRealtimeTrip } from '../hooks/useRealtimeTrip'
-import { supabase } from '../lib/supabase'
 import {
   computeVisualStatus,
   formatRelative,
   type VisualStatus,
 } from '../lib/tripStatus'
 import type { RiskLevel, Trip } from '../types/trip'
-
-const SECTION_TABS = [
-  { id: 'status', label: 'Status' },
-  { id: 'briefing', label: 'Safety Briefing' },
-  { id: 'contacts', label: 'Contacts' },
-  { id: 'documents', label: 'Documents' },
-] as const
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -107,7 +97,7 @@ export function TripErrorFallback() {
           </Link>
           <Link
             to="/"
-            aria-label="SheSafe Travel — home"
+            aria-label="SheSafe Travel home"
             className="font-serif font-medium text-lg tracking-tight hover:opacity-80 transition-opacity"
           >
             SheSafe<span className="italic text-coral"> Travel</span>
@@ -183,62 +173,6 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
       ? window.location.href
       : `https://shesafe-travel.vercel.app/trip/${trip.share_code}`
 
-  const [activeTab, setActiveTab] = useState<string>('status')
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
-        if (visible.length > 0) {
-          setActiveTab(visible[0].target.id)
-        }
-      },
-      {
-        // Triggers when a section enters the upper portion of the viewport.
-        // top -80px accounts for the sticky tab bar; bottom -55% biases
-        // toward "the section near the top of what's visible".
-        rootMargin: '-80px 0px -55% 0px',
-        threshold: [0, 0.1, 0.5, 1],
-      },
-    )
-
-    SECTION_TABS.forEach((t) => {
-      const el = document.getElementById(t.id)
-      if (el) observer.observe(el)
-    })
-
-    return () => observer.disconnect()
-  }, [])
-
-  const handleTabClick = (id: string) => {
-    const el = document.getElementById(id)
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      setActiveTab(id)
-    }
-  }
-
-  const handleRefreshBriefing = async () => {
-    await supabase
-      .from('trips')
-      .update({ briefing_data: null })
-      .eq('share_code', trip.share_code)
-
-    void fetch('/api/generate-briefing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        shareCode: trip.share_code,
-        destinationCity: trip.destination_city,
-        destinationCountry: trip.destination_country,
-        travelDatesStart: trip.travel_dates_start,
-        travelDatesEnd: trip.travel_dates_end,
-      }),
-    }).catch(() => {})
-  }
-
   return (
     <main
       className={`min-h-full text-navy transition-colors duration-500 ${
@@ -259,7 +193,7 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
           </Link>
           <Link
             to="/"
-            aria-label="SheSafe Travel — home"
+            aria-label="SheSafe Travel home"
             className="font-serif font-medium text-lg tracking-tight hover:opacity-80 transition-opacity"
           >
             SheSafe<span className="italic text-coral"> Travel</span>
@@ -318,9 +252,6 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
           lastCheckIn={lastCheckIn}
           pageUrl={pageUrl}
           traveler={traveler}
-          activeTab={activeTab}
-          onTabClick={handleTabClick}
-          onRefreshBriefing={handleRefreshBriefing}
         />
       )}
 
@@ -338,10 +269,6 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
           >
             Sally Asemota
           </a>
-          <span className="text-navy/30 mx-1.5" aria-hidden>
-            ·
-          </span>
-          Built for Women Build AI Build-A-Thon 2026
         </p>
         <p className="text-xs text-navy/45">
           Powered by Claude, Supabase, Firecrawl
@@ -369,9 +296,6 @@ function TripContactView({
   lastCheckIn,
   pageUrl,
   traveler,
-  activeTab,
-  onTabClick,
-  onRefreshBriefing,
 }: {
   trip: Trip
   checkIns: ReturnType<typeof useCheckInHistory>
@@ -381,9 +305,6 @@ function TripContactView({
   lastCheckIn: ReturnType<typeof useCheckInHistory>[number] | undefined
   pageUrl: string
   traveler: boolean
-  activeTab: string
-  onTabClick: (id: string) => void
-  onRefreshBriefing: () => Promise<void>
 }) {
   return (
     <>
@@ -467,64 +388,25 @@ function TripContactView({
         </div>
       )}
 
-      <SectionTabs activeId={activeTab} onSelect={onTabClick} />
+      <div className="px-5 pt-6 pb-12 max-w-2xl mx-auto space-y-5">
+        <TripStatusDisplay trip={trip} checkIns={checkIns} />
 
-      <div className="px-5 pt-6 pb-12 max-w-2xl mx-auto space-y-8">
-        <section id="status" className="scroll-mt-20 space-y-5">
-          <TripStatusDisplay trip={trip} checkIns={checkIns} />
+        {traveler && (
+          <Section title="Your check-in timer">
+            <CheckInTimer trip={trip} visualStatus={visualStatus} />
+          </Section>
+        )}
 
-          {traveler && (
-            <Section title="Your check-in timer">
-              <CheckInTimer trip={trip} visualStatus={visualStatus} />
-            </Section>
-          )}
-
-          {(checkIns.length > 0 || trip.check_in_status === 'active') && (
-            <Section title="Check-in history">
-              <CheckInHistoryList
-                checkIns={checkIns}
-                travelerName={trip.traveler_name}
-              />
-            </Section>
-          )}
-        </section>
-
-        <section id="briefing" className="scroll-mt-20">
-          <Section title="AI safety briefing">
-            <BriefingSection
-              data={
-                trip.share_code === DEMO_SHARE_CODE
-                  ? DEMO_BRIEFING
-                  : trip.briefing_data
-              }
-              homeCountry={trip.traveler_home_country}
-              onRefresh={
-                trip.share_code === DEMO_SHARE_CODE
-                  ? undefined
-                  : onRefreshBriefing
-              }
+        {(checkIns.length > 0 || trip.check_in_status === 'active') && (
+          <Section title="Check-in history">
+            <CheckInHistoryList
+              checkIns={checkIns}
+              travelerName={trip.traveler_name}
             />
           </Section>
-        </section>
+        )}
 
-        <section id="contacts" className="scroll-mt-20 space-y-5">
-          {isAlert ? (
-            <EmergencyActions trip={trip} urgent />
-          ) : visualStatus === 'orange' ? (
-            <>
-              <OverdueNotice travelerName={trip.traveler_name} />
-              <EmergencyActions trip={trip} urgent={false} />
-            </>
-          ) : (
-            <EmergencyActions trip={trip} urgent={false} />
-          )}
-        </section>
-
-        <section id="documents" className="scroll-mt-20">
-          <Section title="Offline access">
-            <PDFDownloads trip={trip} />
-          </Section>
-        </section>
+        {isAlert && <EmergencyActions trip={trip} urgent />}
       </div>
     </>
   )
@@ -609,69 +491,6 @@ function RiskBadge({ level }: { level: RiskLevel }) {
       <span className={`h-2 w-2 rounded-full ${style.dot}`} aria-hidden />
       {level} risk
     </span>
-  )
-}
-
-function SectionTabs({
-  activeId,
-  onSelect,
-}: {
-  activeId: string
-  onSelect: (id: string) => void
-}) {
-  return (
-    <nav
-      aria-label="Trip page sections"
-      className="sticky top-0 z-30 bg-cream/95 backdrop-blur-sm border-b border-navy/10 shadow-[0_2px_12px_rgba(61,64,91,0.05)]"
-    >
-      <div className="max-w-2xl mx-auto px-3 sm:px-5">
-        <ul
-          role="tablist"
-          className="flex gap-0 overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
-        >
-          {SECTION_TABS.map((t) => {
-            const active = activeId === t.id
-            return (
-              <li key={t.id} className="flex-shrink-0">
-                <a
-                  href={`#${t.id}`}
-                  role="tab"
-                  aria-selected={active}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    onSelect(t.id)
-                  }}
-                  className={`block px-3 sm:px-4 py-3 text-sm font-medium border-b-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/40 focus-visible:ring-inset rounded-sm ${
-                    active
-                      ? 'text-coral border-coral'
-                      : 'text-navy/65 border-transparent hover:text-navy'
-                  }`}
-                >
-                  {t.label}
-                </a>
-              </li>
-            )
-          })}
-        </ul>
-      </div>
-    </nav>
-  )
-}
-
-function OverdueNotice({ travelerName }: { travelerName: string }) {
-  return (
-    <div className="rounded-2xl border border-orange-300 bg-orange-50 px-5 py-4 flex items-start gap-3">
-      <span className="text-orange-600 text-xl shrink-0" aria-hidden>
-        ⚠
-      </span>
-      <p className="text-sm text-orange-900 leading-relaxed">
-        <span className="font-semibold">
-          {travelerName}'s check-in is overdue.
-        </span>{' '}
-        Try reaching her — if you can't get through, the alert below will
-        unlock additional emergency info.
-      </p>
-    </div>
   )
 }
 

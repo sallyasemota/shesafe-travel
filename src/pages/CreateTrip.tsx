@@ -213,7 +213,7 @@ export default function CreateTrip() {
           </Link>
           <Link
             to="/"
-            aria-label="SheSafe Travel — home"
+            aria-label="SheSafe Travel home"
             className="font-serif font-medium text-xl tracking-tight hover:opacity-80 transition-opacity"
           >
             SheSafe<span className="italic text-coral"> Travel</span>
@@ -233,7 +233,7 @@ export default function CreateTrip() {
           Plan your <span className="italic text-coral">trip</span>
         </h1>
         <p className="mt-5 text-base sm:text-lg text-navy/75 leading-relaxed max-w-lg mx-auto">
-          Three quick steps. Setup takes about 90 seconds.
+          Three quick steps. Done in 90 seconds.
         </p>
       </section>
 
@@ -256,7 +256,7 @@ export default function CreateTrip() {
                       Your <span className="italic text-coral">trip</span>
                     </h2>
                     <p className="text-sm text-navy/70">
-                      Where you're going and when.
+                      Where you're headed and when.
                     </p>
                   </div>
 
@@ -364,8 +364,8 @@ export default function CreateTrip() {
                         })}
                       </div>
                       <p className="mt-2 text-xs text-navy/60 leading-relaxed">
-                        How often you'll tap "I'm Safe". If you miss a
-                        check-in, your contacts get notified.
+                        How often you'll tap "I'm Safe". Miss one, and your
+                        contacts get notified.
                       </p>
                     </div>
                   </div>
@@ -380,7 +380,7 @@ export default function CreateTrip() {
                       <span className="italic text-coral">safety circle</span>
                     </h2>
                     <p className="text-sm text-navy/70">
-                      These are the people who'll have your back.
+                      The people who'll have your back.
                     </p>
                   </div>
 
@@ -489,8 +489,8 @@ export default function CreateTrip() {
                       </span>
                     </h2>
                     <p className="text-sm text-navy/70">
-                      Information that's only revealed to your safety circle if
-                      your check-in timer expires.
+                      Only revealed to your safety circle if your check-in
+                      timer runs out.
                     </p>
                   </div>
 
@@ -504,7 +504,7 @@ export default function CreateTrip() {
                       list="home-country-options"
                       value={homeCountry}
                       onChange={(e) => setHomeCountry(e.target.value)}
-                      placeholder="Start typing — e.g. United States, Nigeria, Germany"
+                      placeholder="Start typing, e.g. United States, Nigeria, Germany"
                       autoComplete="country-name"
                       className={inputBase}
                     />
@@ -514,8 +514,9 @@ export default function CreateTrip() {
                       ))}
                     </datalist>
                     <p className="mt-1 text-xs text-navy/60">
-                      Drives which embassy appears in your safety briefing.
-                      Type any country — the list is a suggestion.
+                      This determines which embassy shows in your safety
+                      briefing. Type any country, the list is just a
+                      suggestion.
                     </p>
                   </div>
 
@@ -622,7 +623,7 @@ export default function CreateTrip() {
                               onChange={(e) => setBloodType(e.target.value)}
                               className={inputBase}
                             >
-                              <option value="">—</option>
+                              <option value="">Select</option>
                               {BLOOD_TYPES.map((bt) => (
                                 <option key={bt} value={bt}>
                                   {bt}
@@ -749,8 +750,8 @@ export default function CreateTrip() {
           </form>
 
           <p className="mt-4 text-center text-xs text-navy/60">
-            Your trip details are encrypted and only visible via your unique
-            link.
+            Your trip details are encrypted and only visible through your
+            unique link.
           </p>
         </div>
       </section>
@@ -768,8 +769,6 @@ export default function CreateTrip() {
           >
             Sally Asemota
           </a>
-          <span className="text-navy/30 mx-1.5" aria-hidden>·</span>
-          Built for Women Build AI Build-A-Thon 2026
         </p>
         <p className="text-xs text-navy/45">
           Powered by Claude, Supabase, Firecrawl
@@ -915,7 +914,7 @@ function SuccessScreen({
         </div>
         <p className="text-sm text-navy/70 leading-relaxed pt-1">
           Send this link to your safety circle. They'll see your trip status,
-          safety briefing, and emergency info — no app needed.
+          safety briefing, and emergency info. No app needed.
         </p>
       </div>
 
@@ -947,8 +946,7 @@ function SuccessScreen({
       </button>
 
       <p className="mt-6 text-center text-xs text-navy/55 italic">
-        Bookmark this page — you'll check in from your trip page during your
-        trip.
+        Bookmark this page. You'll check in from here during your trip.
       </p>
     </section>
   )

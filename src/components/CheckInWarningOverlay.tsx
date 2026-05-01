@@ -76,7 +76,7 @@ export function CheckInWarningOverlay({
             Check in soon
           </h2>
           <p className="text-sm text-navy/70">
-            Your timer is almost up. Tap below to confirm you're safe — or add
+            Your timer is almost up. Tap below to confirm you're safe, or add
             time if you need it.
           </p>
         </div>
@@ -107,7 +107,7 @@ export function CheckInWarningOverlay({
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-coral text-cream font-semibold shadow hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
           >
             <span aria-hidden>✓</span>
-            {busy === 'checkin' ? 'Saving…' : "I'm safe — check in"}
+            {busy === 'checkin' ? 'Saving…' : "I'm safe, check in"}
           </button>
           <button
             type="button"

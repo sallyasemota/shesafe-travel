@@ -282,7 +282,7 @@ export function BriefingSection({
             {data.phrases_to_know.map((phrase, i) => (
               <li key={i}>
                 <span className="font-semibold text-navy">{phrase.local}</span>
-                <span className="text-navy/60"> — {phrase.english}</span>
+                <span className="text-navy/60"> · {phrase.english}</span>
               </li>
             ))}
           </ul>

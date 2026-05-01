@@ -115,7 +115,7 @@ export function CheckInTimer({
               className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-coral text-cream font-semibold shadow hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
             >
               <span aria-hidden>✓</span>
-              {submitting ? 'Saving…' : "I'm safe — check in"}
+              {submitting ? 'Saving…' : "I'm safe, check in"}
             </button>
             <button
               type="button"
@@ -136,7 +136,7 @@ export function CheckInTimer({
               className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-coral text-cream font-bold text-lg shadow hover:opacity-90 active:scale-[0.98] transition disabled:opacity-50"
             >
               <span aria-hidden>✓</span>
-              {submitting ? 'Saving…' : "I'm safe — check in"}
+              {submitting ? 'Saving…' : "I'm safe, check in"}
             </button>
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -173,7 +173,7 @@ export function CheckInTimer({
   return (
     <div className="space-y-4">
       <p className="text-sm text-navy/70">
-        Set a timer. Your contacts see a live countdown — if you don't check in
+        Set a timer. Your contacts see a live countdown. If you don't check in
         before it expires, your "If I Go Missing" info is revealed.
       </p>
 

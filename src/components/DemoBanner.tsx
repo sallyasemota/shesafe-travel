@@ -73,7 +73,7 @@ export function DemoBanner({
     const now = Date.now()
     // 6-minute timer, expired 30s ago. Duration ≥ 5min → grace is 15min,
     // so the orange window stays open ~14.5 min and won't silently roll
-    // into red while a judge is reading the page.
+    // into red while someone is reading the page.
     await actions.setTimerWindow(
       new Date(now - 6 * 60_000 - 30_000),
       new Date(now - 30_000),
@@ -106,11 +106,11 @@ export function DemoBanner({
   return (
     <div className="px-4 sm:px-6 pt-5">
       <div className="max-w-2xl mx-auto rounded-3xl bg-gold/20 border-2 border-dashed border-gold/70 shadow-[0_2px_30px_rgba(242,204,143,0.15)] p-6 sm:p-8 space-y-7">
-        {/* Frame: this is meta-UI for judges, not the actual product */}
+        {/* Frame: this is meta-UI, not the actual product */}
         <div className="flex items-start justify-between gap-3 -mb-2">
           <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.28em] text-navy/60 inline-flex items-center gap-1.5">
             <span aria-hidden>🎬</span>
-            Demo controls — for judges
+            Demo controls
           </p>
           <button
             type="button"
@@ -132,8 +132,7 @@ export function DemoBanner({
           </h2>
           <p className="text-base sm:text-[17px] text-navy/80 leading-relaxed max-w-prose">
             Live check-in countdown, AI safety briefing, tap-to-call emergency
-            contacts — all through one shareable link. No app, no login. Built
-            for Women Build AI Build-A-Thon 2026.
+            contacts. All through one shareable link. No app, no login.
           </p>
           <ul className="flex flex-wrap gap-1.5 pt-1">
             <FeaturePill>Live check-in timer</FeaturePill>
@@ -148,8 +147,8 @@ export function DemoBanner({
           <p className="text-base text-navy/80 leading-relaxed">
             You're looking at the live page{' '}
             <span className="italic">Maria</span> opened from the link Sofia
-            texted her. Right now —{' '}
-            <span className="italic text-coral">Sofia's safe</span>, she just
+            texted her. Right now,{' '}
+            <span className="italic text-coral">Sofia's safe</span>. She just
             checked in.
           </p>
           <p className="text-base font-semibold text-navy">
@@ -199,7 +198,7 @@ export function DemoBanner({
           )}
           <p className="text-xs text-navy/60 italic">
             Every change appears in real time on every open device. Demo
-            controls only · won't appear on trips you create.
+            controls only. Won't appear on real trips.
           </p>
         </div>
 
