@@ -127,8 +127,9 @@ export function DemoBanner({
             SheSafe Travel · Live demo
           </p>
           <h2 className="font-serif font-semibold text-3xl sm:text-4xl leading-[1.1] tracking-[-0.015em] text-navy">
-            See what Maria <span className="italic text-coral">(mom)</span>{' '}
-            sees when Sofia travels to Morocco.
+            See what Maria{' '}
+            <span className="italic text-coral">(Sofia's mom)</span> sees when
+            Sofia travels to Morocco.
           </h2>
           <p className="text-base sm:text-[17px] text-navy/80 leading-relaxed max-w-prose">
             Live check-in countdown, AI safety briefing, tap-to-call emergency
@@ -217,7 +218,7 @@ export function DemoBanner({
               active={viewerMode === 'mom'}
               onClick={() => onChangeViewerMode('mom')}
               icon="👀"
-              label="Maria (mom)"
+              label="Maria (Sofia's mom)"
               sublabel="What contacts see"
             />
             <ViewerPill
