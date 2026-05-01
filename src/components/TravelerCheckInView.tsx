@@ -46,7 +46,7 @@ function formatTripDateRange(startIso: string, endIso: string): string {
 export function TravelerCheckInView({ trip }: { trip: Trip }) {
   const now = useNow(1000)
   const status = computeVisualStatus(trip, now)
-  const checkIns = useCheckInHistory(trip.id)
+  const checkIns = useCheckInHistory(trip.id, trip.share_code)
   const actions = useCheckInActions(trip)
 
   const [message, setMessage] = useState('')

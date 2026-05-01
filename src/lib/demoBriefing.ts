@@ -1,6 +1,27 @@
-import type { BriefingData } from '../types/trip'
+import type { BriefingData, CheckIn } from '../types/trip'
 
 export const DEMO_SHARE_CODE = 'marrakech-demo'
+
+// Three synthetic check-ins anchored to the moment the page loaded.
+// They display as recent daytime check-ins regardless of when the demo
+// is opened, instead of inheriting the seed's UTC timestamps which
+// rendered as "12:11 AM" etc. for US viewers.
+export function buildDemoCheckIns(tripId: string, nowMs: number): CheckIn[] {
+  const minute = 60_000
+  const hour = 60 * minute
+  const seeds: Array<{ deltaMs: number; message: string }> = [
+    { deltaMs: 12 * minute, message: 'Just had the best tagine at a rooftop cafe! 🧡' },
+    { deltaMs: 4 * hour, message: "Walking through the medina — it's beautiful here." },
+    { deltaMs: 6 * hour, message: 'Arrived at the riad, all settled in.' },
+  ]
+  return seeds.map((s, i) => ({
+    id: `demo-checkin-${i}`,
+    trip_id: tripId,
+    status: 'safe',
+    message: s.message,
+    created_at: new Date(nowMs - s.deltaMs).toISOString(),
+  }))
+}
 
 export const DEMO_BRIEFING: BriefingData = {
   overall_risk_level: 'Moderate',

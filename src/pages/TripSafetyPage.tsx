@@ -90,7 +90,7 @@ function NotFound() {
 function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
   const now = useNow(1000)
   const visualStatus = computeVisualStatus(trip, now)
-  const checkIns = useCheckInHistory(trip.id)
+  const checkIns = useCheckInHistory(trip.id, trip.share_code)
   const actions = useCheckInActions(trip)
 
   const isDemo = trip.share_code === DEMO_SHARE_CODE
