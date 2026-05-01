@@ -79,9 +79,16 @@ export function useRealtimeTrip(
         },
         (payload) => {
           if (!active) return
-          setState({
-            kind: 'ready',
-            trip: withDemoOverrides(payload.new as Trip),
+          // Merge incoming changes onto the existing row. Supabase Realtime
+          // can deliver only the changed columns when REPLICA IDENTITY is
+          // not FULL — replacing wholesale would drop fields like
+          // share_code, briefing_data, traveler_name and crash any
+          // component that expects them on the next render.
+          setState((prev) => {
+            const base = prev.kind === 'ready' ? prev.trip : null
+            const incoming = payload.new as Partial<Trip>
+            const merged = (base ? { ...base, ...incoming } : incoming) as Trip
+            return { kind: 'ready', trip: withDemoOverrides(merged) }
           })
         },
       )
