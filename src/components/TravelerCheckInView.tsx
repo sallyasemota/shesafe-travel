@@ -247,17 +247,17 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
             {checkIns.slice(0, 5).map((c) => (
               <li key={c.id} className="space-y-1.5">
                 <div className="flex items-baseline justify-between gap-2 flex-wrap">
-                  <span className="text-[15px] font-semibold text-navy">
-                    ✓ Checked in
+                  <span className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-navy">
+                    <SpeechIcon className="w-3.5 h-3.5 text-coral/80 shrink-0" />
+                    Checked in
                   </span>
                   <span className="text-xs text-navy/55">
                     {formatRelative(c.created_at, now)}
                   </span>
                 </div>
                 {c.message && (
-                  <div className="rounded-2xl rounded-tl-md bg-coral/10 border border-coral/25 px-4 py-3 flex items-start gap-2.5 shadow-[0_1px_3px_rgba(61,64,91,0.04)]">
-                    <SpeechIcon className="w-4 h-4 text-coral mt-0.5 shrink-0" />
-                    <p className="text-[15px] italic text-navy/85 leading-snug break-words">
+                  <div className="rounded-xl rounded-tl-md bg-coral/10 border border-coral/25 px-4 py-3 shadow-sm">
+                    <p className="text-base italic text-navy/90 leading-snug break-words">
                       {c.message}
                     </p>
                   </div>

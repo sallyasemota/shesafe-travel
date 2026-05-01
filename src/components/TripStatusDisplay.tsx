@@ -184,10 +184,10 @@ export function TripStatusDisplay({
       )}
 
       {lastCheckIn?.message ? (
-        <div className="rounded-2xl bg-coral/10 border border-coral/25 px-4 py-3 flex items-start gap-3">
-          <SpeechIcon className="w-4 h-4 text-coral mt-1 shrink-0" />
+        <div className="rounded-2xl bg-coral/10 border border-coral/25 px-4 py-3.5 flex items-start gap-3 shadow-sm">
+          <SpeechIcon className="w-5 h-5 text-coral mt-0.5 shrink-0" />
           <div className="min-w-0 flex-1">
-            <p className="text-[15px] italic text-navy/85 leading-snug break-words">
+            <p className="text-base italic text-navy/90 leading-snug break-words">
               {lastCheckIn.message}
             </p>
             <p className="text-xs text-navy/55 mt-1.5">
