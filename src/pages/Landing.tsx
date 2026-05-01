@@ -237,7 +237,7 @@ function Features() {
       eyebrow: 'Feature 02',
       icon: '🛡️',
       title: 'AI safety briefing',
-      body: 'Claude generates a women-specific briefing for each destination: cultural norms, harassment patterns, transport tips, safe areas, local emergency numbers, key phrases in the local language, and a color-coded risk level. Live State Department advisories included when available.',
+      body: 'Every destination gets a women-specific briefing: cultural norms, harassment patterns, transport tips, safe areas, local emergency numbers, key phrases in the local language, and a color-coded risk level. Live State Department advisories included when available.',
     },
     {
       eyebrow: 'Feature 03',
