@@ -21,6 +21,7 @@ export function DemoBanner({
   const now = useNow(1000)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [collapsed, setCollapsed] = useState(false)
 
   // Active demo button reflects the trip's current visual status, so the
   // highlight matches what the rest of the page is actually rendering —
@@ -80,9 +81,41 @@ export function DemoBanner({
     await actions.setTimerWindow(new Date(now - 60_000), new Date(now - 50_000))
   })
 
+  if (collapsed) {
+    return (
+      <div className="px-4 sm:px-6 pt-5">
+        <div className="max-w-2xl mx-auto">
+          <button
+            type="button"
+            onClick={() => setCollapsed(false)}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gold/30 border border-gold/60 text-navy/80 text-xs font-semibold uppercase tracking-[0.2em] px-4 py-2.5 hover:bg-gold/40 transition-colors"
+          >
+            <span aria-hidden>🎬</span>
+            Show demo controls
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="px-4 sm:px-6 pt-5">
-      <div className="max-w-2xl mx-auto rounded-3xl bg-gold/20 border border-gold/60 shadow-[0_2px_30px_rgba(242,204,143,0.15)] p-6 sm:p-8 space-y-7">
+      <div className="max-w-2xl mx-auto rounded-3xl bg-gold/20 border-2 border-dashed border-gold/70 shadow-[0_2px_30px_rgba(242,204,143,0.15)] p-6 sm:p-8 space-y-7">
+        {/* Frame: this is meta-UI for judges, not the actual product */}
+        <div className="flex items-start justify-between gap-3 -mb-2">
+          <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.28em] text-navy/60 inline-flex items-center gap-1.5">
+            <span aria-hidden>🎬</span>
+            Demo controls — for judges
+          </p>
+          <button
+            type="button"
+            onClick={() => setCollapsed(true)}
+            className="text-[11px] font-semibold text-navy/60 hover:text-navy underline-offset-2 hover:underline transition-colors shrink-0"
+          >
+            Hide
+          </button>
+        </div>
+
         {/* Section 1 — what the product is */}
         <div className="space-y-3">
           <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-coral">

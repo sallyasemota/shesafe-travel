@@ -275,6 +275,25 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         />
       )}
 
+      {isDemo && (
+        <div className="px-4 sm:px-6 pt-6 max-w-2xl mx-auto">
+          <div className="flex items-center gap-3" aria-hidden>
+            <span className="flex-1 h-px bg-navy/15" />
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.22em] text-navy/55 whitespace-nowrap">
+              What Maria actually sees below
+            </span>
+            <span className="flex-1 h-px bg-navy/15" />
+          </div>
+          <div className="mt-4 rounded-full bg-white border border-navy/10 px-4 py-2 text-xs text-navy/70 inline-flex items-center gap-1.5 shadow-sm">
+            <span aria-hidden>🔗</span>
+            Shared safety page · Sent by{' '}
+            <span className="font-semibold text-navy/85">
+              {trip.traveler_name}
+            </span>
+          </div>
+        </div>
+      )}
+
       {showTravelerView ? (
         <ErrorBoundary
           fallback={
