@@ -9,6 +9,7 @@ import {
   formatRelative,
 } from '../lib/tripStatus'
 import type { Trip } from '../types/trip'
+import { SpeechIcon } from './icons'
 
 const COUNTDOWN_TONE: Record<
   ReturnType<typeof computeVisualStatus>,
@@ -230,12 +231,9 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
             No check-ins yet — your first one will show up here.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {checkIns.slice(0, 5).map((c) => (
-              <li
-                key={c.id}
-                className="rounded-xl bg-white border border-navy/10 px-4 py-3"
-              >
+              <li key={c.id} className="space-y-1.5">
                 <div className="flex items-baseline justify-between gap-2 flex-wrap">
                   <span className="text-[15px] font-semibold text-navy">
                     ✓ Checked in
@@ -245,9 +243,12 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
                   </span>
                 </div>
                 {c.message && (
-                  <p className="text-[15px] text-navy/75 mt-1 break-words italic">
-                    "{c.message}"
-                  </p>
+                  <div className="rounded-2xl rounded-tl-md bg-coral/10 border border-coral/25 px-4 py-3 flex items-start gap-2.5 shadow-[0_1px_3px_rgba(61,64,91,0.04)]">
+                    <SpeechIcon className="w-4 h-4 text-coral mt-0.5 shrink-0" />
+                    <p className="text-[15px] italic text-navy/85 leading-snug break-words">
+                      {c.message}
+                    </p>
+                  </div>
                 )}
               </li>
             ))}

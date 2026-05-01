@@ -6,6 +6,7 @@ import {
   type VisualStatus,
 } from '../lib/tripStatus'
 import type { CheckIn, Trip } from '../types/trip'
+import { SpeechIcon } from './icons'
 
 type ActiveStatus = Exclude<VisualStatus, 'inactive'>
 
@@ -170,16 +171,27 @@ export function TripStatusDisplay({
         </div>
       )}
 
-      <p className="text-xs text-navy/60 text-center">
-        {lastCheckIn ? (
-          <>
-            Last check-in: {formatRelative(lastCheckIn.created_at, now)}
-            {lastCheckIn.message ? ` — "${lastCheckIn.message}"` : ''}
-          </>
-        ) : trip.last_check_in ? (
-          <>Timer started: {formatRelative(trip.last_check_in, now)}</>
-        ) : null}
-      </p>
+      {lastCheckIn?.message ? (
+        <div className="rounded-2xl bg-coral/10 border border-coral/25 px-4 py-3 flex items-start gap-3">
+          <SpeechIcon className="w-4 h-4 text-coral mt-1 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[15px] italic text-navy/85 leading-snug break-words">
+              {lastCheckIn.message}
+            </p>
+            <p className="text-xs text-navy/55 mt-1.5">
+              {formatRelative(lastCheckIn.created_at, now)}
+            </p>
+          </div>
+        </div>
+      ) : lastCheckIn ? (
+        <p className="text-xs text-navy/60 text-center">
+          Last check-in: {formatRelative(lastCheckIn.created_at, now)}
+        </p>
+      ) : trip.last_check_in ? (
+        <p className="text-xs text-navy/60 text-center">
+          Timer started: {formatRelative(trip.last_check_in, now)}
+        </p>
+      ) : null}
 
       {(status === 'orange' || status === 'red') && checkIns.length > 0 && (
         <p className="text-xs text-navy/70 text-center bg-white/60 rounded-lg px-3 py-2 italic">
