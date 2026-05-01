@@ -5,6 +5,7 @@ import { CheckInHistoryList } from '../components/CheckInHistoryList'
 import { CheckInTimer } from '../components/CheckInTimer'
 import { CheckInWarningOverlay } from '../components/CheckInWarningOverlay'
 import { DemoBanner } from '../components/DemoBanner'
+import { DEMO_BRIEFING, DEMO_SHARE_CODE } from '../lib/demoBriefing'
 import { EmergencyActions } from '../components/EmergencyActions'
 import { PDFDownloads } from '../components/PDFDownloads'
 import { ShareButton } from '../components/ShareButton'
@@ -269,10 +270,14 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         <section id="briefing" className="scroll-mt-20">
           <Section title="AI safety briefing">
             <BriefingSection
-              data={trip.briefing_data}
+              data={
+                trip.share_code === DEMO_SHARE_CODE
+                  ? DEMO_BRIEFING
+                  : trip.briefing_data
+              }
               homeCountry={trip.traveler_home_country}
               onRefresh={
-                trip.share_code === 'marrakech-demo'
+                trip.share_code === DEMO_SHARE_CODE
                   ? undefined
                   : handleRefreshBriefing
               }

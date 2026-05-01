@@ -42,6 +42,7 @@ export const DEMO_BRIEFING: BriefingData = {
   ],
   phrases_to_know: [
     { local: 'La, shukran', english: 'No, thank you (firm)' },
+    { local: 'Barra', english: 'Leave me alone (firm boundary)' },
     { local: 'Bshhal hada?', english: 'How much is this?' },
     { local: 'Smahli', english: 'Excuse me / Sorry' },
     { local: 'Mn fadlik', english: 'Please / If you would' },
