@@ -24,10 +24,12 @@ function buildActions(trip: Trip, urgent: boolean): ActionItem[] {
   const items: ActionItem[] = []
   const emergency = trip.briefing_data?.sections?.emergency_contacts
 
-  // Personal contacts (traveler + emergency contacts) only surface in the
-  // urgent reveal — calm mode shows just emergency services so the page
-  // stays low-stakes when she's checked in or just running late.
-  if (urgent && trip.traveler_phone) {
+  // Calm mode = personal safety circle only (traveler phone + Mom / friend).
+  // Local emergency services (police, ambulance, fire, embassy) live in
+  // the Briefing tab so they're not duplicated. Urgent mode is the
+  // dramatic reveal: everything in one place at the moment of crisis.
+
+  if (trip.traveler_phone) {
     items.push({
       key: 'traveler',
       label: `Call ${trip.traveler_name}`,
@@ -36,69 +38,69 @@ function buildActions(trip: Trip, urgent: boolean): ActionItem[] {
     })
   }
 
-  if (emergency?.police) {
-    const tel = extractTel(emergency.police)
-    if (tel) {
-      items.push({
-        key: 'police',
-        label: 'Local police',
-        detail: emergency.police,
-        tel,
-      })
-    }
-  }
-
-  if (emergency?.ambulance) {
-    const tel = extractTel(emergency.ambulance)
-    if (tel) {
-      items.push({
-        key: 'ambulance',
-        label: 'Ambulance',
-        detail: emergency.ambulance,
-        tel,
-      })
-    }
-  }
-
-  if (emergency?.fire) {
-    const tel = extractTel(emergency.fire)
-    if (tel) {
-      items.push({
-        key: 'fire',
-        label: 'Fire',
-        detail: emergency.fire,
-        tel,
-      })
-    }
-  }
-
-  const embassyValue = emergency?.embassy ?? emergency?.us_embassy
-  if (embassyValue) {
-    const tel = extractTel(embassyValue)
-    if (tel) {
-      const homeCountry = trip.traveler_home_country?.trim() || 'US'
-      items.push({
-        key: 'embassy',
-        label: `${homeCountry} Embassy`,
-        detail: embassyValue,
-        tel,
-      })
-    }
-  }
-
   if (urgent) {
-    const contacts = (trip.emergency_contacts ?? []).filter(
-      (c): c is EmergencyContact => Boolean(c?.name && c?.phone),
-    )
-    contacts.forEach((c, i) => {
-      items.push({
-        key: `contact-${i}`,
-        label: `Call ${c.name}`,
-        detail: c.relationship ? `${c.relationship} — ${c.phone}` : c.phone,
-        tel: telHref(c.phone),
-      })
-    })
+    if (emergency?.police) {
+      const tel = extractTel(emergency.police)
+      if (tel) {
+        items.push({
+          key: 'police',
+          label: 'Local police',
+          detail: emergency.police,
+          tel,
+        })
+      }
+    }
+
+    if (emergency?.ambulance) {
+      const tel = extractTel(emergency.ambulance)
+      if (tel) {
+        items.push({
+          key: 'ambulance',
+          label: 'Ambulance',
+          detail: emergency.ambulance,
+          tel,
+        })
+      }
+    }
+
+    if (emergency?.fire) {
+      const tel = extractTel(emergency.fire)
+      if (tel) {
+        items.push({
+          key: 'fire',
+          label: 'Fire',
+          detail: emergency.fire,
+          tel,
+        })
+      }
+    }
+
+    const embassyValue = emergency?.embassy ?? emergency?.us_embassy
+    if (embassyValue) {
+      const tel = extractTel(embassyValue)
+      if (tel) {
+        const homeCountry = trip.traveler_home_country?.trim() || 'US'
+        items.push({
+          key: 'embassy',
+          label: `${homeCountry} Embassy`,
+          detail: embassyValue,
+          tel,
+        })
+      }
+    }
   }
+
+  const contacts = (trip.emergency_contacts ?? []).filter(
+    (c): c is EmergencyContact => Boolean(c?.name && c?.phone),
+  )
+  contacts.forEach((c, i) => {
+    items.push({
+      key: `contact-${i}`,
+      label: `Call ${c.name}`,
+      detail: c.relationship ? `${c.relationship} — ${c.phone}` : c.phone,
+      tel: telHref(c.phone),
+    })
+  })
 
   return items
 }
@@ -156,7 +158,7 @@ export function EmergencyActions({
   return (
     <div className="rounded-2xl bg-white border border-navy/10 shadow-sm p-5">
       <h2 className="text-base uppercase tracking-wider text-navy/60 font-semibold mb-3">
-        Emergency services
+        Your safety circle
       </h2>
       <ul className="space-y-2">
         {actions.map((a) => (
