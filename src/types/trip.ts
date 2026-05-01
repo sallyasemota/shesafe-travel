@@ -80,6 +80,7 @@ export interface Trip {
   hotel_name: string | null
   hotel_address: string | null
   hotel_phone: string | null
+  check_in_interval_hours: number | null
   created_at: string
 }
 

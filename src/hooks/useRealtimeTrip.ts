@@ -13,7 +13,7 @@ export type RealtimeTripState =
 // dependency on the row's briefing_data being present in the DB.
 function withDemoOverrides(trip: Trip): Trip {
   if (trip.share_code !== DEMO_SHARE_CODE) return trip
-  return { ...trip, briefing_data: DEMO_BRIEFING }
+  return { ...trip, briefing_data: DEMO_BRIEFING, check_in_interval_hours: 2 }
 }
 
 export function useRealtimeTrip(

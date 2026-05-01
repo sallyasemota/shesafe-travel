@@ -140,6 +140,14 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
 
       {expiresMs && status !== 'inactive' && (
         <section className="rounded-2xl bg-white border border-navy/10 shadow-sm p-6 text-center space-y-2">
+          {trip.check_in_interval_hours && (
+            <p className="text-sm text-navy/65">
+              You set check-ins every{' '}
+              <span className="font-semibold text-navy/85">
+                {trip.check_in_interval_hours} hours
+              </span>
+            </p>
+          )}
           <p className="text-xs uppercase tracking-wider text-navy/60 font-semibold">
             {now > expiresMs ? 'Overdue by' : 'Next check-in due in'}
           </p>
@@ -148,7 +156,11 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
           >
             {formatCountdown(expiresMs, now)}
           </p>
-          <p className="text-sm text-navy/65 pt-1">
+          <p className="text-xs text-navy/55 leading-relaxed max-w-sm mx-auto pt-1">
+            Tap "I'm Safe" before the timer runs out to let your contacts
+            know you're okay.
+          </p>
+          <p className="text-sm text-navy/65 pt-2">
             You've checked in{' '}
             <span className="font-semibold text-navy">
               {checkIns.length} {checkIns.length === 1 ? 'time' : 'times'}

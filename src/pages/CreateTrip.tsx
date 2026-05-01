@@ -52,6 +52,7 @@ export default function CreateTrip() {
   const [country, setCountry] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [intervalHours, setIntervalHours] = useState<number>(4)
   const [travelerPhone, setTravelerPhone] = useState('')
   const [homeCountry, setHomeCountry] = useState('')
   const [contacts, setContacts] = useState<EmergencyContact[]>([
@@ -157,6 +158,7 @@ export default function CreateTrip() {
         hotel_name: hotelName.trim() || null,
         hotel_address: hotelAddress.trim() || null,
         hotel_phone: hotelPhone.trim() || null,
+        check_in_interval_hours: intervalHours,
         share_code: shareCode,
         check_in_status: 'inactive',
       })
@@ -332,6 +334,39 @@ export default function CreateTrip() {
                           className={inputBase}
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <label className={labelBase}>Check-in interval</label>
+                      <div
+                        role="radiogroup"
+                        aria-label="Check-in interval"
+                        className="grid grid-cols-2 sm:grid-cols-4 gap-2"
+                      >
+                        {[2, 4, 8, 12].map((h) => {
+                          const active = intervalHours === h
+                          return (
+                            <button
+                              key={h}
+                              type="button"
+                              role="radio"
+                              aria-checked={active}
+                              onClick={() => setIntervalHours(h)}
+                              className={`rounded-full px-3 py-2.5 text-sm font-semibold border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
+                                active
+                                  ? 'bg-coral text-cream border-coral shadow-[0_4px_14px_rgba(224,122,95,0.25)]'
+                                  : 'bg-cream/60 text-navy border-navy/15 hover:bg-cream'
+                              }`}
+                            >
+                              Every {h} hours
+                            </button>
+                          )
+                        })}
+                      </div>
+                      <p className="mt-2 text-xs text-navy/60 leading-relaxed">
+                        How often you'll tap "I'm Safe". If you miss a
+                        check-in, your contacts get notified.
+                      </p>
                     </div>
                   </div>
                 </>

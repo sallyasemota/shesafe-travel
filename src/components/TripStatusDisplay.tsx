@@ -145,6 +145,14 @@ export function TripStatusDisplay({
       </div>
 
       <div className="text-center">
+        {trip.check_in_interval_hours && (
+          <p className="text-sm text-navy/65 mb-2">
+            <span className="font-semibold text-navy/80">
+              {trip.traveler_name}
+            </span>{' '}
+            set a {trip.check_in_interval_hours}-hour check-in window.
+          </p>
+        )}
         <p className="text-xs uppercase tracking-wider text-navy/60 mb-1">
           {isOverdue ? 'Overdue by' : 'Time remaining'}
         </p>
@@ -152,6 +160,10 @@ export function TripStatusDisplay({
           className={`font-mono text-3xl sm:text-4xl font-bold tabular-nums ${style.countdown}`}
         >
           {formatCountdown(expiresMs, now)}
+        </p>
+        <p className="mt-2 text-xs text-navy/55 leading-relaxed max-w-sm mx-auto">
+          If the timer reaches zero without a check-in,{' '}
+          {trip.traveler_name}'s status changes and you'll be notified.
         </p>
       </div>
 
