@@ -252,7 +252,7 @@ function Features() {
       eyebrow: 'Feature 03',
       icon: '⏱️',
       title: 'Check-in timer with escalation',
-      body: 'Pick a duration. Status flows green to yellow to orange to red. At yellow, a vibrating overlay reminds you. At red, the page reveals passport and medical info to the people you trust most. All in real time, no refresh.',
+      body: 'Pick a duration. Status flows green to yellow to orange to red as the timer ticks down. At red, the page transforms — an emergency banner with her last known check-in, full-width Call buttons for everyone in her safety circle, plus passport, medical, and hotel info revealed. All in real time, no refresh.',
     },
     {
       eyebrow: 'Feature 04',
