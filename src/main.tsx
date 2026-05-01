@@ -5,7 +5,7 @@ import { OfflineBanner } from './components/OfflineBanner'
 import CreateTrip from './pages/CreateTrip'
 import Landing from './pages/Landing'
 import NotFound from './pages/NotFound'
-import TripSafetyPage from './pages/TripSafetyPage'
+import TripSafetyPage, { TripErrorFallback } from './pages/TripSafetyPage'
 import './index.css'
 
 const router = createBrowserRouter([
@@ -14,7 +14,7 @@ const router = createBrowserRouter([
   {
     path: '/trip/:shareCode',
     element: <TripSafetyPage />,
-    errorElement: <NotFound />,
+    errorElement: <TripErrorFallback />,
   },
   { path: '*', element: <NotFound /> },
 ])

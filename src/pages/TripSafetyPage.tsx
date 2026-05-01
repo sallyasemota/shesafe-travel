@@ -88,6 +88,65 @@ function NotFound() {
   )
 }
 
+// Used as the errorElement for /trip/:shareCode so an unexpected runtime
+// error during initial render lands here instead of the global NotFound
+// (which made crashes look like 404s, e.g. the Sofia toggle bug).
+export function TripErrorFallback() {
+  const reload = () => {
+    if (typeof window !== 'undefined') window.location.reload()
+  }
+  return (
+    <main className="min-h-full bg-cream text-navy flex flex-col">
+      <nav className="border-b border-navy/[0.06]">
+        <div className="px-5 sm:px-8 py-4 max-w-2xl mx-auto flex items-center justify-between gap-4">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-navy/70 hover:text-coral transition-colors rounded-full px-2 py-1"
+          >
+            <span aria-hidden>←</span> Home
+          </Link>
+          <Link
+            to="/"
+            aria-label="SheSafe Travel — home"
+            className="font-serif font-medium text-lg tracking-tight hover:opacity-80 transition-opacity"
+          >
+            SheSafe<span className="italic text-coral"> Travel</span>
+          </Link>
+        </div>
+      </nav>
+      <div className="flex-1 flex items-center justify-center px-6 py-16">
+        <div className="max-w-md text-center space-y-4">
+          <p className="text-xs uppercase tracking-widest text-coral font-semibold">
+            Hmm
+          </p>
+          <h1 className="font-serif font-medium text-3xl tracking-tight">
+            We hit a snag loading this trip.
+          </h1>
+          <p className="text-navy/70 text-sm leading-relaxed">
+            Refreshing usually fixes it. Your trip data is safe in the
+            background.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
+            <button
+              type="button"
+              onClick={reload}
+              className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-coral text-cream font-semibold shadow hover:opacity-90 transition"
+            >
+              Reload page
+            </button>
+            <Link
+              to="/trip/marrakech-demo"
+              className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-white text-navy border border-navy/15 font-semibold hover:bg-navy/5 transition"
+            >
+              Open the demo
+            </Link>
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
+
 function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
   const now = useNow(1000)
   const visualStatus = computeVisualStatus(trip, now)
