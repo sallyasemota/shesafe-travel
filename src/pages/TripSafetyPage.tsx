@@ -217,9 +217,10 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <StatusBadge visualStatus={visualStatus} />
-          {trip.briefing_data?.overall_risk_level && (
-            <RiskBadge level={trip.briefing_data.overall_risk_level} />
-          )}
+          {trip.briefing_data?.overall_risk_level &&
+            (visualStatus === 'yellow' || visualStatus === 'orange') && (
+              <RiskBadge level={trip.briefing_data.overall_risk_level} />
+            )}
           <ShareButton url={pageUrl} travelerName={trip.traveler_name} />
         </div>
       </header>
