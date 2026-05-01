@@ -335,9 +335,6 @@ function SiteFooter() {
             </a>
           </span>
         </div>
-        <div className="text-xs text-navy/55">
-          <span>Powered by Claude, Supabase, Firecrawl</span>
-        </div>
       </div>
     </footer>
   )

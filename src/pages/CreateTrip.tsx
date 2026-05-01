@@ -770,9 +770,6 @@ export default function CreateTrip() {
             Sally Asemota
           </a>
         </p>
-        <p className="text-xs text-navy/45">
-          Powered by Claude, Supabase, Firecrawl
-        </p>
       </footer>
     </main>
   )

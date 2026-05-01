@@ -270,9 +270,6 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
             Sally Asemota
           </a>
         </p>
-        <p className="text-xs text-navy/45">
-          Powered by Claude, Supabase, Firecrawl
-        </p>
       </footer>
 
       {showWarningOverlay && trip.timer_expires_at && (
