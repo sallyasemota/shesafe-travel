@@ -75,8 +75,15 @@ export function DemoBanner({ trip }: { trip: Trip }) {
           <p className="text-base text-navy/80 leading-relaxed">
             You're seeing exactly what your{' '}
             <span className="italic">mom</span> sees from the link you texted
-            her. Try the cascade — every state change appears in real time on
-            every open device.
+            her. Right now the page is calm —{' '}
+            <span className="italic text-coral">she's safe</span>.
+          </p>
+          <p className="text-base font-semibold text-navy">
+            <span aria-hidden className="mr-1">
+              👇
+            </span>
+            Click through the states to see what happens when a check-in is
+            missed.
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <DemoButton
@@ -113,7 +120,8 @@ export function DemoBanner({ trip }: { trip: Trip }) {
             </p>
           )}
           <p className="text-xs text-navy/60 italic">
-            Demo controls only · won't appear on trips you create.
+            Every change appears in real time on every open device. Demo
+            controls only · won't appear on trips you create.
           </p>
         </div>
       </div>
