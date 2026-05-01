@@ -410,23 +410,34 @@ function TripContactView({
 
       {visualStatus === 'orange' && (
         <div className="px-5 pt-3 max-w-2xl mx-auto">
-          <div className="rounded-2xl bg-orange-100 border border-orange-300 text-orange-900 p-5 text-center shadow-sm">
-            <p className="text-xs uppercase tracking-widest font-bold text-orange-700">
-              ⚠ Overdue
-            </p>
-            <h2 className="text-xl sm:text-2xl font-bold mt-1">
-              {trip.traveler_name}'s check-in is overdue
-            </h2>
-            <p className="text-sm mt-1 text-orange-800/90">
-              {lastCheckIn
-                ? `Last check-in: ${formatRelative(lastCheckIn.created_at, now)}`
-                : trip.last_check_in
-                  ? `Timer started: ${formatRelative(trip.last_check_in, now)}`
-                  : 'No previous check-in on record'}
-            </p>
-            <p className="text-sm mt-2 text-orange-800/85">
-              She may be busy, but keep an eye on the timer.
-            </p>
+          <div className="rounded-2xl bg-orange-100 border border-orange-300 text-orange-900 p-5 shadow-sm space-y-3">
+            <div className="text-center">
+              <p className="text-xs uppercase tracking-widest font-bold text-orange-700">
+                ⚠ Warning · Overdue
+              </p>
+              <h2 className="text-xl sm:text-2xl font-bold mt-1">
+                {trip.traveler_name}'s check-in is overdue
+              </h2>
+              <p className="text-sm mt-1 text-orange-800/90">
+                {lastCheckIn
+                  ? `Last check-in: ${formatRelative(lastCheckIn.created_at, now)}`
+                  : trip.last_check_in
+                    ? `Timer started: ${formatRelative(trip.last_check_in, now)}`
+                    : 'No previous check-in on record'}
+              </p>
+              <p className="text-sm mt-2 text-orange-800/90 font-medium">
+                Try calling her.
+              </p>
+            </div>
+            {trip.traveler_phone && (
+              <a
+                href={`tel:${trip.traveler_phone.replace(/[^\d+]/g, '')}`}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-bold text-base px-6 py-3.5 shadow-[0_6px_20px_rgba(249,115,22,0.30)] active:scale-[0.99] transition"
+              >
+                <span aria-hidden>📞</span>
+                Call {trip.traveler_name}
+              </a>
+            )}
           </div>
         </div>
       )}

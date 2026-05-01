@@ -71,8 +71,13 @@ export function DemoBanner({
 
   const triggerOrange = run('orange', async () => {
     const now = Date.now()
-    // 80s timer, expired 8s ago. Grace = 25% × 80s = 20s. 8s < 20s → orange.
-    await actions.setTimerWindow(new Date(now - 80_000), new Date(now - 8_000))
+    // 6-minute timer, expired 30s ago. Duration ≥ 5min → grace is 15min,
+    // so the orange window stays open ~14.5 min and won't silently roll
+    // into red while a judge is reading the page.
+    await actions.setTimerWindow(
+      new Date(now - 6 * 60_000 - 30_000),
+      new Date(now - 30_000),
+    )
   })
 
   const triggerRed = run('red', async () => {

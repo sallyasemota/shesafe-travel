@@ -174,7 +174,7 @@ export function TripStatusDisplay({
       )}
       {status === 'orange' && (
         <div className="rounded-lg bg-orange-100 border border-orange-300 px-4 py-2 text-sm text-orange-900 font-medium">
-          Check-in overdue. Brief grace period before alert.
+          Check-in overdue. Try calling her.
         </div>
       )}
       {status === 'red' && (
