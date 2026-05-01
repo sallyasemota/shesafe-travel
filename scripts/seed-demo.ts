@@ -96,7 +96,7 @@ async function main() {
     .upsert(
       {
         share_code: SHARE_CODE,
-        traveler_name: 'Demo Traveler',
+        traveler_name: 'Sofia',
         destination_city: 'Marrakech',
         destination_country: 'Morocco',
         travel_dates_start: today,
@@ -104,8 +104,16 @@ async function main() {
         traveler_phone: '+1 555 123 4567',
         traveler_home_country: 'United States',
         emergency_contacts: [
-          { name: 'Mom', phone: '+1 555 234 5678', relationship: 'Mother' },
-          { name: 'Alex', phone: '+1 555 345 6789', relationship: 'Partner' },
+          {
+            name: 'Maria (Mom)',
+            phone: '+1 555 234 5678',
+            relationship: 'Mother',
+          },
+          {
+            name: 'Priya',
+            phone: '+1 555 345 6789',
+            relationship: 'Best Friend',
+          },
         ],
         medical_info: {
           blood_type: 'O+',
@@ -139,9 +147,21 @@ async function main() {
 
   // 2. Upsert sample check-ins by hardcoded id so re-runs don't duplicate
   const checkIns = [
-    { id: CHECK_IN_IDS[0], delta_minutes: -5 * 60, message: 'Arrived at the riad, all settled in.' },
-    { id: CHECK_IN_IDS[1], delta_minutes: -3 * 60, message: 'Heading to Jemaa el-Fna with friends.' },
-    { id: CHECK_IN_IDS[2], delta_minutes: -30, message: 'Back at the riad, having dinner.' },
+    {
+      id: CHECK_IN_IDS[0],
+      delta_minutes: -6 * 60,
+      message: 'Arrived at the riad, all settled in.',
+    },
+    {
+      id: CHECK_IN_IDS[1],
+      delta_minutes: -2 * 60,
+      message: "Walking through the medina — it's beautiful here.",
+    },
+    {
+      id: CHECK_IN_IDS[2],
+      delta_minutes: -5,
+      message: 'Just had the best tagine at a rooftop cafe! 🧡',
+    },
   ]
 
   let upserted = 0

@@ -53,14 +53,13 @@ export function DemoBanner({ trip }: { trip: Trip }) {
             SheSafe Travel · Live demo
           </p>
           <h2 className="font-serif font-semibold text-3xl sm:text-4xl leading-[1.1] tracking-[-0.015em] text-navy">
-            A real-time safety companion for women who{' '}
-            <span className="italic text-coral">travel solo.</span>
+            See what Maria <span className="italic text-coral">(mom)</span>{' '}
+            sees when Sofia travels to Morocco.
           </h2>
           <p className="text-base sm:text-[17px] text-navy/80 leading-relaxed max-w-prose">
-            One shareable link — no app, no login — keeps the people who love
-            you in the loop with a live check-in countdown, an AI safety
-            briefing tailored to your destination, and tap-to-call emergency
-            contacts. Built for Women Build AI Build-A-Thon 2026.
+            Live check-in countdown, AI safety briefing, tap-to-call emergency
+            contacts — all through one shareable link. No app, no login. Built
+            for Women Build AI Build-A-Thon 2026.
           </p>
           <ul className="flex flex-wrap gap-1.5 pt-1">
             <FeaturePill>Live check-in timer</FeaturePill>
@@ -73,10 +72,11 @@ export function DemoBanner({ trip }: { trip: Trip }) {
         {/* Section 2 — what to do here */}
         <div className="border-t border-gold/40 pt-6 space-y-4">
           <p className="text-base text-navy/80 leading-relaxed">
-            You're seeing exactly what your{' '}
-            <span className="italic">mom</span> sees from the link you texted
-            her. Right now the page is calm —{' '}
-            <span className="italic text-coral">she's safe</span>.
+            You're looking at the live page{' '}
+            <span className="italic">Maria</span> opened from the link Sofia
+            texted her. Right now —{' '}
+            <span className="italic text-coral">Sofia's safe</span>, she just
+            checked in.
           </p>
           <p className="text-base font-semibold text-navy">
             <span aria-hidden className="mr-1">
