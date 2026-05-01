@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { DEMO_BRIEFING, DEMO_SHARE_CODE } from '../lib/demoBriefing'
 import { supabase } from '../lib/supabase'
 import type { Trip } from '../types/trip'
 
@@ -6,6 +7,14 @@ export type RealtimeTripState =
   | { kind: 'loading' }
   | { kind: 'ready'; trip: Trip }
   | { kind: 'not-found' }
+
+// Demo trip is always served with a hardcoded briefing so the page renders
+// instantly — no /api/generate-briefing round-trip, no loading spinner, no
+// dependency on the row's briefing_data being present in the DB.
+function withDemoOverrides(trip: Trip): Trip {
+  if (trip.share_code !== DEMO_SHARE_CODE) return trip
+  return { ...trip, briefing_data: DEMO_BRIEFING }
+}
 
 export function useRealtimeTrip(
   shareCode: string | undefined,
@@ -26,7 +35,7 @@ export function useRealtimeTrip(
       // through the cascade controls in DemoBanner. Writes BEFORE the
       // fetch so the first paint already shows green (no flash of stale
       // alert/yellow state from a previous visitor).
-      if (shareCode === 'marrakech-demo') {
+      if (shareCode === DEMO_SHARE_CODE) {
         const now = Date.now()
         const startedAt = new Date(now - 5 * 60_000)
         const expiresAt = new Date(now + 105 * 60_000)
@@ -53,7 +62,7 @@ export function useRealtimeTrip(
         return
       }
 
-      setState({ kind: 'ready', trip: data as Trip })
+      setState({ kind: 'ready', trip: withDemoOverrides(data as Trip) })
     }
 
     load()
@@ -70,7 +79,10 @@ export function useRealtimeTrip(
         },
         (payload) => {
           if (!active) return
-          setState({ kind: 'ready', trip: payload.new as Trip })
+          setState({
+            kind: 'ready',
+            trip: withDemoOverrides(payload.new as Trip),
+          })
         },
       )
       .subscribe()

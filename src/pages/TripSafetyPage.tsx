@@ -271,7 +271,11 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
             <BriefingSection
               data={trip.briefing_data}
               homeCountry={trip.traveler_home_country}
-              onRefresh={handleRefreshBriefing}
+              onRefresh={
+                trip.share_code === 'marrakech-demo'
+                  ? undefined
+                  : handleRefreshBriefing
+              }
             />
           </Section>
         </section>
