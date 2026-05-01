@@ -239,7 +239,14 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         </p>
         <p className="text-xs text-navy/55">
           Built by{' '}
-          <span className="font-semibold text-navy/75">Sally Asemota</span>
+          <a
+            href="https://www.linkedin.com/in/sallyasemota/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-navy/75 hover:text-coral underline-offset-2 hover:underline transition-colors"
+          >
+            Sally Asemota
+          </a>
           <span className="text-navy/30 mx-1.5" aria-hidden>
             ·
           </span>

@@ -54,7 +54,14 @@ export default function NotFound() {
       <footer className="px-5 sm:px-8 pb-10 max-w-2xl mx-auto w-full text-center space-y-1">
         <p className="text-xs text-navy/55">
           Built by{' '}
-          <span className="font-semibold text-navy/75">Sally Asemota</span>
+          <a
+            href="https://www.linkedin.com/in/sallyasemota/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-navy/75 hover:text-coral underline-offset-2 hover:underline transition-colors"
+          >
+            Sally Asemota
+          </a>
           <span className="text-navy/30 mx-1.5" aria-hidden>
             ·
           </span>

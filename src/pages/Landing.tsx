@@ -334,7 +334,14 @@ function SiteFooter() {
           </span>
           <span className="text-xs text-navy/65">
             Built by{' '}
-            <span className="font-semibold text-navy/80">Sally Asemota</span>
+            <a
+              href="https://www.linkedin.com/in/sallyasemota/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-navy/80 hover:text-coral underline-offset-2 hover:underline transition-colors"
+            >
+              Sally Asemota
+            </a>
           </span>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-navy/55">
