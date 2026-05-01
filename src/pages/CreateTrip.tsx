@@ -1,4 +1,4 @@
-import { useState, type FormEventHandler } from 'react'
+import { Fragment, useState, type FormEventHandler } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { COUNTRY_OPTIONS } from '../lib/countries'
 import { supabase } from '../lib/supabase'
@@ -33,6 +33,8 @@ function csvToList(s: string): string[] {
     .filter(Boolean)
 }
 
+const STEP_LABELS = ['Trip', 'Contacts', 'Emergency Info'] as const
+
 export default function CreateTrip() {
   const navigate = useNavigate()
 
@@ -43,7 +45,9 @@ export default function CreateTrip() {
   const [endDate, setEndDate] = useState('')
   const [travelerPhone, setTravelerPhone] = useState('')
   const [homeCountry, setHomeCountry] = useState('')
-  const [contacts, setContacts] = useState<EmergencyContact[]>([{ ...emptyContact }])
+  const [contacts, setContacts] = useState<EmergencyContact[]>([
+    { ...emptyContact },
+  ])
 
   const [showOptional, setShowOptional] = useState(false)
   const [passportNumber, setPassportNumber] = useState('')
@@ -58,6 +62,12 @@ export default function CreateTrip() {
 
   const [submitting, setSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [step, setStep] = useState<1 | 2 | 3>(1)
+
+  const goBack = () => {
+    setErrorMsg(null)
+    setStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3) : s))
+  }
 
   const addContact = () => {
     if (contacts.length < 3) setContacts([...contacts, { ...emptyContact }])
@@ -81,8 +91,17 @@ export default function CreateTrip() {
     e.preventDefault()
     setErrorMsg(null)
 
-    if (endDate && startDate && endDate < startDate) {
-      setErrorMsg('End date must be on or after the start date.')
+    if (step === 1) {
+      if (endDate && startDate && endDate < startDate) {
+        setErrorMsg('End date must be on or after the start date.')
+        return
+      }
+      setStep(2)
+      return
+    }
+
+    if (step === 2) {
+      setStep(3)
       return
     }
 
@@ -194,397 +213,550 @@ export default function CreateTrip() {
           Plan your <span className="italic text-coral">trip</span>
         </h1>
         <p className="mt-5 text-base sm:text-lg text-navy/75 leading-relaxed max-w-lg mx-auto">
-          Tell us where you're going and who you want kept in the loop. Setup
-          takes about 90 seconds.
+          Three quick steps. Setup takes about 90 seconds.
         </p>
       </section>
 
       <section className="px-5 sm:px-8 pb-20">
-        <form
-          onSubmit={handleSubmit}
-          className="max-w-2xl mx-auto space-y-8 bg-white rounded-2xl shadow-sm border border-gold/30 p-6 md:p-8"
-        >
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Trip details</h2>
+        <div className="max-w-2xl mx-auto">
+          <ProgressBar step={step} />
 
-            <div>
-              <label className={labelBase} htmlFor="travelerName">
-                Your name
-              </label>
-              <input
-                id="travelerName"
-                type="text"
-                required
-                value={travelerName}
-                onChange={(e) => setTravelerName(e.target.value)}
-                placeholder="e.g. Sally"
-                className={inputBase}
-              />
-            </div>
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white rounded-2xl shadow-sm border border-gold/30 p-6 md:p-8"
+          >
+            <div
+              key={step}
+              className="step-in animate-[step-in_280ms_ease-out] space-y-6"
+            >
+              {step === 1 && (
+                <>
+                  <div className="space-y-1.5">
+                    <h2 className="font-serif font-medium text-2xl sm:text-[28px] tracking-tight">
+                      Your <span className="italic text-coral">trip</span>
+                    </h2>
+                    <p className="text-sm text-navy/70">
+                      Where you're going and when.
+                    </p>
+                  </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelBase} htmlFor="city">
-                  Destination city
-                </label>
-                <input
-                  id="city"
-                  type="text"
-                  required
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="Marrakech"
-                  className={inputBase}
-                />
-              </div>
-              <div>
-                <label className={labelBase} htmlFor="country">
-                  Destination country
-                </label>
-                <input
-                  id="country"
-                  type="text"
-                  required
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  placeholder="Morocco"
-                  className={inputBase}
-                />
-              </div>
-            </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={labelBase} htmlFor="travelerName">
+                        Your name
+                      </label>
+                      <input
+                        id="travelerName"
+                        type="text"
+                        required
+                        value={travelerName}
+                        onChange={(e) => setTravelerName(e.target.value)}
+                        placeholder="e.g. Sally"
+                        className={inputBase}
+                      />
+                    </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={labelBase} htmlFor="startDate">
-                  Start date
-                </label>
-                <input
-                  id="startDate"
-                  type="date"
-                  required
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className={inputBase}
-                />
-              </div>
-              <div>
-                <label className={labelBase} htmlFor="endDate">
-                  End date
-                </label>
-                <input
-                  id="endDate"
-                  type="date"
-                  required
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className={inputBase}
-                />
-              </div>
-            </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelBase} htmlFor="city">
+                          Destination city
+                        </label>
+                        <input
+                          id="city"
+                          type="text"
+                          required
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          placeholder="Marrakech"
+                          className={inputBase}
+                        />
+                      </div>
+                      <div>
+                        <label className={labelBase} htmlFor="country">
+                          Destination country
+                        </label>
+                        <input
+                          id="country"
+                          type="text"
+                          required
+                          value={country}
+                          onChange={(e) => setCountry(e.target.value)}
+                          placeholder="Morocco"
+                          className={inputBase}
+                        />
+                      </div>
+                    </div>
 
-            <div>
-              <label className={labelBase} htmlFor="homeCountry">
-                Your passport country
-              </label>
-              <input
-                id="homeCountry"
-                type="text"
-                required
-                list="home-country-options"
-                value={homeCountry}
-                onChange={(e) => setHomeCountry(e.target.value)}
-                placeholder="Start typing — e.g. United States, Nigeria, Germany"
-                autoComplete="country-name"
-                className={inputBase}
-              />
-              <datalist id="home-country-options">
-                {COUNTRY_OPTIONS.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-              <p className="mt-1 text-xs text-navy/60">
-                We use this to surface the right embassy in your safety
-                briefing. Type any country — the list is a suggestion.
-              </p>
-            </div>
-          </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelBase} htmlFor="startDate">
+                          Start date
+                        </label>
+                        <input
+                          id="startDate"
+                          type="date"
+                          required
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className={inputBase}
+                        />
+                      </div>
+                      <div>
+                        <label className={labelBase} htmlFor="endDate">
+                          End date
+                        </label>
+                        <input
+                          id="endDate"
+                          type="date"
+                          required
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className={inputBase}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
-          <div className="space-y-4">
-            <div className="flex items-baseline justify-between">
-              <h2 className="text-xl font-semibold">Emergency contacts</h2>
-              <span className="text-xs text-navy/60">
-                {contacts.length} of 3
-              </span>
-            </div>
+              {step === 2 && (
+                <>
+                  <div className="space-y-1.5">
+                    <h2 className="font-serif font-medium text-2xl sm:text-[28px] tracking-tight">
+                      Your{' '}
+                      <span className="italic text-coral">safety circle</span>
+                    </h2>
+                    <p className="text-sm text-navy/70">
+                      These are the people who'll have your back.
+                    </p>
+                  </div>
 
-            {contacts.map((c, i) => (
-              <div
-                key={i}
-                className="rounded-lg border border-navy/10 bg-cream/50 p-4 space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-navy/80">
-                    Contact {i + 1}
+                  <div className="space-y-4">
+                    <div className="flex items-baseline justify-between">
+                      <h3 className="text-base font-semibold text-navy">
+                        Emergency contacts
+                      </h3>
+                      <span className="text-xs text-navy/60">
+                        {contacts.length} of 3
+                      </span>
+                    </div>
+
+                    {contacts.map((c, i) => (
+                      <div
+                        key={i}
+                        className="rounded-lg border border-navy/10 bg-cream/50 p-4 space-y-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium text-navy/80">
+                            Contact {i + 1}
+                          </p>
+                          {contacts.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeContact(i)}
+                              className="text-xs text-coral hover:underline"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <input
+                            type="text"
+                            placeholder="Name"
+                            required
+                            value={c.name}
+                            onChange={(e) =>
+                              updateContact(i, 'name', e.target.value)
+                            }
+                            className={inputBase}
+                          />
+                          <input
+                            type="tel"
+                            placeholder="Phone"
+                            required
+                            value={c.phone}
+                            onChange={(e) =>
+                              updateContact(i, 'phone', e.target.value)
+                            }
+                            className={inputBase}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Relationship"
+                            required
+                            value={c.relationship}
+                            onChange={(e) =>
+                              updateContact(i, 'relationship', e.target.value)
+                            }
+                            className={inputBase}
+                          />
+                        </div>
+                      </div>
+                    ))}
+
+                    {contacts.length < 3 && (
+                      <button
+                        type="button"
+                        onClick={addContact}
+                        className="text-sm font-medium text-coral hover:underline"
+                      >
+                        + Add another contact
+                      </button>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={labelBase} htmlFor="travelerPhone">
+                      Your phone number
+                    </label>
+                    <input
+                      id="travelerPhone"
+                      type="tel"
+                      required
+                      value={travelerPhone}
+                      onChange={(e) => setTravelerPhone(e.target.value)}
+                      placeholder="+1 555 123 4567"
+                      className={inputBase}
+                    />
+                    <p className="mt-1 text-xs text-navy/60">
+                      Used by the "Call Her" button on your shared page.
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {step === 3 && (
+                <>
+                  <div className="space-y-1.5">
+                    <h2 className="font-serif font-medium text-2xl sm:text-[28px] tracking-tight">
+                      Emergency info{' '}
+                      <span className="italic text-navy/55 text-xl">
+                        (optional)
+                      </span>
+                    </h2>
+                    <p className="text-sm text-navy/70">
+                      Information that's only revealed to your safety circle if
+                      your check-in timer expires.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className={labelBase} htmlFor="homeCountry">
+                      Your passport country
+                    </label>
+                    <input
+                      id="homeCountry"
+                      type="text"
+                      list="home-country-options"
+                      value={homeCountry}
+                      onChange={(e) => setHomeCountry(e.target.value)}
+                      placeholder="Start typing — e.g. United States, Nigeria, Germany"
+                      autoComplete="country-name"
+                      className={inputBase}
+                    />
+                    <datalist id="home-country-options">
+                      {COUNTRY_OPTIONS.map((c) => (
+                        <option key={c} value={c} />
+                      ))}
+                    </datalist>
+                    <p className="mt-1 text-xs text-navy/60">
+                      Drives which embassy appears in your safety briefing.
+                      Type any country — the list is a suggestion.
+                    </p>
+                  </div>
+
+                  <p className="text-xs text-navy/70 leading-relaxed bg-gold/15 border border-gold/40 rounded-md p-3">
+                    Your passport and medical info is optional and stored for
+                    emergency purposes only. We do not sell or share this data.
+                    Sensitive information is only visible to your emergency
+                    contacts if your check-in timer expires.
                   </p>
-                  {contacts.length > 1 && (
+
+                  <div className="rounded-lg border border-navy/10 overflow-hidden">
                     <button
                       type="button"
-                      onClick={() => removeContact(i)}
-                      className="text-xs text-coral hover:underline"
+                      onClick={() => setShowOptional((v) => !v)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-navy/5 hover:bg-navy/10 transition text-left"
+                      aria-expanded={showOptional}
+                      aria-controls="optional-emergency-info"
                     >
-                      Remove
+                      <span className="font-medium">
+                        Passport, medical & accommodation
+                      </span>
+                      <span className="text-coral text-sm font-medium">
+                        {showOptional ? 'Hide' : 'Show'}
+                      </span>
                     </button>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    required
-                    value={c.name}
-                    onChange={(e) => updateContact(i, 'name', e.target.value)}
-                    className={inputBase}
-                  />
-                  <input
-                    type="tel"
-                    placeholder="Phone"
-                    required
-                    value={c.phone}
-                    onChange={(e) => updateContact(i, 'phone', e.target.value)}
-                    className={inputBase}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Relationship"
-                    required
-                    value={c.relationship}
-                    onChange={(e) =>
-                      updateContact(i, 'relationship', e.target.value)
-                    }
-                    className={inputBase}
-                  />
-                </div>
-              </div>
-            ))}
 
-            {contacts.length < 3 && (
-              <button
-                type="button"
-                onClick={addContact}
-                className="text-sm font-medium text-coral hover:underline"
-              >
-                + Add another contact
-              </button>
-            )}
-          </div>
+                    {showOptional && (
+                      <div
+                        id="optional-emergency-info"
+                        className="p-4 md:p-5 space-y-4 bg-white"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label
+                              className={labelBase}
+                              htmlFor="passportNumber"
+                            >
+                              Passport number
+                            </label>
+                            <input
+                              id="passportNumber"
+                              type="text"
+                              autoComplete="off"
+                              value={passportNumber}
+                              onChange={(e) => setPassportNumber(e.target.value)}
+                              className={inputBase}
+                            />
+                          </div>
+                          <div>
+                            <label
+                              className={labelBase}
+                              htmlFor="passportCountry"
+                            >
+                              Passport issuing country
+                            </label>
+                            <input
+                              id="passportCountry"
+                              type="text"
+                              value={passportCountry}
+                              onChange={(e) =>
+                                setPassportCountry(e.target.value)
+                              }
+                              className={inputBase}
+                            />
+                          </div>
+                        </div>
 
-          <div>
-            <label className={labelBase} htmlFor="travelerPhone">
-              Your phone number
-            </label>
-            <input
-              id="travelerPhone"
-              type="tel"
-              required
-              value={travelerPhone}
-              onChange={(e) => setTravelerPhone(e.target.value)}
-              placeholder="+1 555 123 4567"
-              className={inputBase}
-            />
-            <p className="mt-1 text-xs text-navy/60">
-              Used by the "Call Her" button on your shared page.
-            </p>
-          </div>
+                        <div>
+                          <label className={labelBase} htmlFor="allergies">
+                            Medical allergies
+                          </label>
+                          <input
+                            id="allergies"
+                            type="text"
+                            value={allergies}
+                            onChange={(e) => setAllergies(e.target.value)}
+                            placeholder="Comma separated, e.g. peanuts, penicillin"
+                            className={inputBase}
+                          />
+                        </div>
 
-          <p className="text-xs text-navy/70 leading-relaxed bg-gold/15 border border-gold/40 rounded-md p-3">
-            Your passport and medical info is optional and stored for emergency
-            purposes only. We do not sell or share this data. Sensitive
-            information is only visible to your emergency contacts if your
-            check-in timer expires.
-          </p>
+                        <div>
+                          <label className={labelBase} htmlFor="medications">
+                            Current medications
+                          </label>
+                          <input
+                            id="medications"
+                            type="text"
+                            value={medications}
+                            onChange={(e) => setMedications(e.target.value)}
+                            placeholder="Comma separated"
+                            className={inputBase}
+                          />
+                        </div>
 
-          <div className="rounded-lg border border-navy/10 overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setShowOptional((v) => !v)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-navy/5 hover:bg-navy/10 transition text-left"
-              aria-expanded={showOptional}
-              aria-controls="optional-emergency-info"
-            >
-              <span className="font-medium">Emergency info (optional)</span>
-              <span className="text-coral text-sm font-medium">
-                {showOptional ? 'Hide' : 'Show'}
-              </span>
-            </button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className={labelBase} htmlFor="bloodType">
+                              Blood type
+                            </label>
+                            <select
+                              id="bloodType"
+                              value={bloodType}
+                              onChange={(e) => setBloodType(e.target.value)}
+                              className={inputBase}
+                            >
+                              <option value="">—</option>
+                              {BLOOD_TYPES.map((bt) => (
+                                <option key={bt} value={bt}>
+                                  {bt}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className={labelBase} htmlFor="photoUrl">
+                              Photo URL
+                            </label>
+                            <input
+                              id="photoUrl"
+                              type="url"
+                              value={photoUrl}
+                              onChange={(e) => setPhotoUrl(e.target.value)}
+                              placeholder="https://..."
+                              className={inputBase}
+                            />
+                          </div>
+                        </div>
 
-            {showOptional && (
-              <div
-                id="optional-emergency-info"
-                className="p-4 md:p-5 space-y-4 bg-white"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelBase} htmlFor="passportNumber">
-                      Passport number
-                    </label>
-                    <input
-                      id="passportNumber"
-                      type="text"
-                      autoComplete="off"
-                      value={passportNumber}
-                      onChange={(e) => setPassportNumber(e.target.value)}
-                      className={inputBase}
-                    />
+                        <div className="border-t border-navy/10 pt-4 mt-2 space-y-4">
+                          <p className="text-xs uppercase tracking-wider text-navy/60 font-semibold">
+                            Where you're staying
+                          </p>
+
+                          <div>
+                            <label className={labelBase} htmlFor="hotelName">
+                              Hotel / accommodation name
+                            </label>
+                            <input
+                              id="hotelName"
+                              type="text"
+                              value={hotelName}
+                              onChange={(e) => setHotelName(e.target.value)}
+                              placeholder="e.g. Riad Yasmine"
+                              className={inputBase}
+                            />
+                          </div>
+
+                          <div>
+                            <label
+                              className={labelBase}
+                              htmlFor="hotelAddress"
+                            >
+                              Address
+                            </label>
+                            <input
+                              id="hotelAddress"
+                              type="text"
+                              value={hotelAddress}
+                              onChange={(e) => setHotelAddress(e.target.value)}
+                              placeholder="Street, neighborhood"
+                              className={inputBase}
+                            />
+                          </div>
+
+                          <div>
+                            <label className={labelBase} htmlFor="hotelPhone">
+                              Hotel phone
+                            </label>
+                            <input
+                              id="hotelPhone"
+                              type="tel"
+                              value={hotelPhone}
+                              onChange={(e) => setHotelPhone(e.target.value)}
+                              placeholder="+212 ..."
+                              className={inputBase}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label className={labelBase} htmlFor="passportCountry">
-                      Passport issuing country
-                    </label>
-                    <input
-                      id="passportCountry"
-                      type="text"
-                      value={passportCountry}
-                      onChange={(e) => setPassportCountry(e.target.value)}
-                      className={inputBase}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className={labelBase} htmlFor="allergies">
-                    Medical allergies
-                  </label>
-                  <input
-                    id="allergies"
-                    type="text"
-                    value={allergies}
-                    onChange={(e) => setAllergies(e.target.value)}
-                    placeholder="Comma separated, e.g. peanuts, penicillin"
-                    className={inputBase}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelBase} htmlFor="medications">
-                    Current medications
-                  </label>
-                  <input
-                    id="medications"
-                    type="text"
-                    value={medications}
-                    onChange={(e) => setMedications(e.target.value)}
-                    placeholder="Comma separated"
-                    className={inputBase}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelBase} htmlFor="bloodType">
-                      Blood type
-                    </label>
-                    <select
-                      id="bloodType"
-                      value={bloodType}
-                      onChange={(e) => setBloodType(e.target.value)}
-                      className={inputBase}
-                    >
-                      <option value="">—</option>
-                      {BLOOD_TYPES.map((bt) => (
-                        <option key={bt} value={bt}>
-                          {bt}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className={labelBase} htmlFor="photoUrl">
-                      Photo URL
-                    </label>
-                    <input
-                      id="photoUrl"
-                      type="url"
-                      value={photoUrl}
-                      onChange={(e) => setPhotoUrl(e.target.value)}
-                      placeholder="https://..."
-                      className={inputBase}
-                    />
-                  </div>
-                </div>
-
-                <div className="border-t border-navy/10 pt-4 mt-2 space-y-4">
-                  <p className="text-xs uppercase tracking-wider text-navy/60 font-semibold">
-                    Where you're staying
-                  </p>
-
-                  <div>
-                    <label className={labelBase} htmlFor="hotelName">
-                      Hotel / accommodation name
-                    </label>
-                    <input
-                      id="hotelName"
-                      type="text"
-                      value={hotelName}
-                      onChange={(e) => setHotelName(e.target.value)}
-                      placeholder="e.g. Riad Yasmine"
-                      className={inputBase}
-                    />
-                  </div>
-
-                  <div>
-                    <label className={labelBase} htmlFor="hotelAddress">
-                      Address
-                    </label>
-                    <input
-                      id="hotelAddress"
-                      type="text"
-                      value={hotelAddress}
-                      onChange={(e) => setHotelAddress(e.target.value)}
-                      placeholder="Street, neighborhood"
-                      className={inputBase}
-                    />
-                  </div>
-
-                  <div>
-                    <label className={labelBase} htmlFor="hotelPhone">
-                      Hotel phone
-                    </label>
-                    <input
-                      id="hotelPhone"
-                      type="tel"
-                      value={hotelPhone}
-                      onChange={(e) => setHotelPhone(e.target.value)}
-                      placeholder="+212 ..."
-                      className={inputBase}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {errorMsg && (
-            <div
-              role="alert"
-              className="rounded-md border border-coral/40 bg-coral/10 px-4 py-3 text-sm text-coral"
-            >
-              {errorMsg}
+                </>
+              )}
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full inline-flex items-center justify-center px-6 py-3 rounded-full bg-coral text-cream font-semibold shadow hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {submitting ? 'Creating your safety plan…' : 'Create My Safety Plan'}
-          </button>
-        </form>
+            {errorMsg && (
+              <div
+                role="alert"
+                className="mt-6 rounded-md border border-coral/40 bg-coral/10 px-4 py-3 text-sm text-coral"
+              >
+                {errorMsg}
+              </div>
+            )}
 
-        <p className="max-w-2xl mx-auto mt-4 text-center text-xs text-navy/60">
-          Your trip details are encrypted and only visible via your unique link.
-        </p>
+            <div className="mt-8">
+              {step === 1 ? (
+                <button
+                  type="submit"
+                  className="w-full inline-flex items-center justify-center px-6 py-3 rounded-full bg-coral text-cream font-semibold shadow hover:opacity-90 active:scale-[0.99] transition disabled:opacity-50"
+                >
+                  Next <span aria-hidden className="ml-1">→</span>
+                </button>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    disabled={submitting}
+                    className="inline-flex items-center justify-center px-4 py-3 rounded-full bg-white text-navy border border-navy/15 font-semibold hover:bg-navy/5 active:scale-[0.99] transition disabled:opacity-50"
+                  >
+                    <span aria-hidden className="mr-1">
+                      ←
+                    </span>{' '}
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex items-center justify-center px-4 py-3 rounded-full bg-coral text-cream font-semibold shadow hover:opacity-90 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {step === 3
+                      ? submitting
+                        ? 'Creating…'
+                        : 'Create My Safety Plan'
+                      : 'Next →'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </form>
+
+          <p className="mt-4 text-center text-xs text-navy/60">
+            Your trip details are encrypted and only visible via your unique
+            link.
+          </p>
+        </div>
       </section>
     </main>
+  )
+}
+
+function ProgressBar({ step }: { step: 1 | 2 | 3 }) {
+  return (
+    <ol
+      className="flex items-start justify-between gap-1 max-w-md mx-auto mb-6 px-1"
+      aria-label={`Step ${step} of 3`}
+    >
+      {STEP_LABELS.map((label, i) => {
+        const num = (i + 1) as 1 | 2 | 3
+        const status = num < step ? 'done' : num === step ? 'current' : 'upcoming'
+        const isLast = i === STEP_LABELS.length - 1
+        return (
+          <Fragment key={label}>
+            <li className="flex flex-col items-center gap-1.5 flex-shrink-0 min-w-0">
+              <span
+                aria-current={status === 'current' ? 'step' : undefined}
+                className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  status === 'current'
+                    ? 'bg-coral text-cream ring-4 ring-coral/20 scale-105'
+                    : status === 'done'
+                      ? 'bg-coral text-cream'
+                      : 'bg-navy/10 text-navy/50'
+                }`}
+              >
+                {status === 'done' ? (
+                  <span aria-hidden>✓</span>
+                ) : (
+                  num
+                )}
+              </span>
+              <span
+                className={`text-[11px] font-medium tracking-wide whitespace-nowrap ${
+                  status === 'upcoming' ? 'text-navy/50' : 'text-navy'
+                }`}
+              >
+                {label}
+              </span>
+            </li>
+            {!isLast && (
+              <li
+                aria-hidden
+                className="flex-1 mt-4 min-w-[24px]"
+              >
+                <div
+                  className={`h-0.5 rounded-full transition-colors duration-300 ${
+                    num < step ? 'bg-coral' : 'bg-navy/10'
+                  }`}
+                />
+              </li>
+            )}
+          </Fragment>
+        )
+      })}
+    </ol>
   )
 }
