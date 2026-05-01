@@ -53,6 +53,12 @@ export function DemoBanner({
   // All four buttons drive the existing realtime path — page reacts via the
   // same hook every viewer uses, so the demo shows the real product.
   const resetGreen = run('green', async () => {
+    // Insert a real check-in row first so the page's "most recent check-in"
+    // record (used by the message bubble) and the trip's last_check_in
+    // (used by the status badge) point at the SAME event with the SAME
+    // timestamp. Without this, clicking Green updated only the trip and
+    // the bubble caption kept showing the old synthetic baseline time.
+    await actions.checkIn('All good, just checking in 💛')
     await actions.startTimer(4 * 60 * 60_000)
   })
 
