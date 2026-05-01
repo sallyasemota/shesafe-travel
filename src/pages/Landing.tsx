@@ -60,7 +60,7 @@ function Nav() {
 
 function Hero() {
   return (
-    <section className="relative px-5 sm:px-8 pt-16 sm:pt-24 pb-20 sm:pb-28 max-w-4xl mx-auto text-center">
+    <section className="relative px-5 sm:px-8 pt-12 sm:pt-16 pb-14 sm:pb-20 max-w-4xl mx-auto text-center">
       <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-coral mb-7">
         Real-time travel safety, built for women
       </p>
@@ -103,7 +103,7 @@ function Hero() {
 
 function PhoneMockup() {
   return (
-    <div className="mt-12 sm:mt-14 max-w-md mx-auto">
+    <div className="mt-10 sm:mt-12 max-w-md mx-auto">
       <div className="rounded-2xl bg-white shadow-[0_20px_60px_rgba(61,64,91,0.18)] border border-navy/10 overflow-hidden text-left">
         {/* Browser-style top bar */}
         <div className="bg-navy/5 border-b border-navy/10 px-4 py-3 flex items-center gap-1.5">
@@ -179,8 +179,8 @@ function HowItWorks() {
     },
   ]
   return (
-    <section className="px-5 sm:px-8 py-20 sm:py-28 max-w-6xl mx-auto">
-      <div className="text-center mb-14 sm:mb-16">
+    <section className="px-5 sm:px-8 py-14 sm:py-20 max-w-6xl mx-auto">
+      <div className="text-center mb-10 sm:mb-12">
         <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-navy/55 mb-4">
           How it works
         </p>
@@ -221,7 +221,7 @@ function HowItWorks() {
 function SocialProofStat() {
   return (
     <section className="px-5 sm:px-8 max-w-4xl mx-auto">
-      <div className="border-y border-navy/10 py-14 sm:py-20 text-center space-y-5">
+      <div className="border-y border-navy/10 py-10 sm:py-14 text-center space-y-4">
         <p className="font-serif font-semibold text-coral text-7xl sm:text-8xl leading-none tracking-[-0.02em]">
           72%
         </p>
@@ -263,8 +263,8 @@ function Features() {
   ]
   return (
     <section className="bg-white border-y border-navy/[0.06]">
-      <div className="px-5 sm:px-8 py-20 sm:py-28 max-w-6xl mx-auto">
-        <div className="text-center mb-14 sm:mb-16">
+      <div className="px-5 sm:px-8 py-14 sm:py-20 max-w-6xl mx-auto">
+        <div className="text-center mb-10 sm:mb-12">
           <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-navy/55 mb-4">
             What's inside
           </p>
@@ -304,7 +304,7 @@ function Features() {
 
 function FinalCta() {
   return (
-    <section className="px-5 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center">
+    <section className="px-5 sm:px-8 py-14 sm:py-20 max-w-3xl mx-auto text-center">
       <h2 className="font-serif font-medium text-4xl sm:text-5xl leading-tight tracking-[-0.015em]">
         Ready for your <span className="italic text-coral">next trip?</span>
       </h2>
