@@ -60,7 +60,7 @@ function Nav() {
 
 function Hero() {
   return (
-    <section className="relative px-5 sm:px-8 pt-12 sm:pt-16 pb-14 sm:pb-20 max-w-4xl mx-auto text-center">
+    <section className="relative px-5 sm:px-8 pt-12 sm:pt-16 pb-6 sm:pb-8 max-w-4xl mx-auto text-center">
       <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-coral mb-7">
         Real-time travel safety, built for women
       </p>
@@ -94,7 +94,7 @@ function Hero() {
           See a live demo
         </Link>
       </div>
-      <p className="mt-9 text-xs text-navy/55 tracking-wide">
+      <p className="mt-7 text-xs text-navy/55 tracking-wide">
         No app to install. No account. Just a link.
       </p>
     </section>
@@ -179,7 +179,7 @@ function HowItWorks() {
     },
   ]
   return (
-    <section className="px-5 sm:px-8 py-14 sm:py-20 max-w-6xl mx-auto">
+    <section className="px-5 sm:px-8 pt-8 sm:pt-12 pb-14 sm:pb-20 max-w-6xl mx-auto">
       <div className="text-center mb-10 sm:mb-12">
         <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-navy/55 mb-4">
           How it works
