@@ -149,12 +149,14 @@ export function DemoBanner({
             <ViewerPill
               active={viewerMode === 'mom'}
               onClick={() => onChangeViewerMode('mom')}
+              icon="👀"
               label="Maria (mom)"
               sublabel="What contacts see"
             />
             <ViewerPill
               active={viewerMode === 'sofia'}
               onClick={() => onChangeViewerMode('sofia')}
+              icon="📱"
               label="Sofia (traveler)"
               sublabel="The check-in screen"
             />
@@ -168,11 +170,13 @@ export function DemoBanner({
 function ViewerPill({
   active,
   onClick,
+  icon,
   label,
   sublabel,
 }: {
   active: boolean
   onClick: () => void
+  icon: string
   label: string
   sublabel: string
 }) {
@@ -185,10 +189,15 @@ function ViewerPill({
       className={`flex flex-col items-center justify-center gap-0.5 rounded-2xl border px-4 py-3 text-sm font-semibold transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream focus-visible:ring-coral/50 ${
         active
           ? 'bg-coral text-cream border-coral shadow-[0_4px_18px_rgba(224,122,95,0.30)]'
-          : 'bg-white text-coral border-coral/50 hover:bg-coral/5'
+          : 'bg-transparent text-coral border-coral hover:bg-coral/5'
       }`}
     >
-      <span>{label}</span>
+      <span>
+        <span aria-hidden className="mr-1">
+          {icon}
+        </span>
+        {label}
+      </span>
       <span
         className={`text-[11px] font-medium tracking-wide ${active ? 'text-cream/80' : 'text-navy/55'}`}
       >

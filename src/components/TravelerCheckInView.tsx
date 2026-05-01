@@ -20,6 +20,29 @@ const COUNTDOWN_TONE: Record<
   red: 'text-red-700',
 }
 
+function formatTripDateRange(startIso: string, endIso: string): string {
+  const start = new Date(startIso)
+  const end = new Date(endIso)
+  const sameMonth =
+    start.getUTCMonth() === end.getUTCMonth() &&
+    start.getUTCFullYear() === end.getUTCFullYear()
+  const month = start.toLocaleDateString('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  })
+  const startDay = start.getUTCDate()
+  const endDay = end.getUTCDate()
+  const year = end.getUTCFullYear()
+  if (sameMonth) {
+    return `${month} ${startDay}–${endDay}, ${year}`
+  }
+  const endMonth = end.toLocaleDateString('en-US', {
+    month: 'short',
+    timeZone: 'UTC',
+  })
+  return `${month} ${startDay} – ${endMonth} ${endDay}, ${year}`
+}
+
 export function TravelerCheckInView({ trip }: { trip: Trip }) {
   const now = useNow(1000)
   const status = computeVisualStatus(trip, now)
@@ -27,60 +50,117 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
   const actions = useCheckInActions(trip)
 
   const [message, setMessage] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [busy, setBusy] = useState<'checkin' | 'extend' | 'reset' | null>(null)
   const [justCheckedIn, setJustCheckedIn] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const expiresMs = trip.timer_expires_at
     ? new Date(trip.timer_expires_at).getTime()
     : null
 
-  const handleCheckIn = async () => {
-    if (submitting) return
-    setError(null)
-    setSubmitting(true)
-    try {
-      await actions.checkIn(message)
-      setMessage('')
-      setJustCheckedIn(true)
-      window.setTimeout(() => setJustCheckedIn(false), 2200)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not check in.')
-    } finally {
-      setSubmitting(false)
-    }
+  const showToast = (msg: string) => {
+    setToast(msg)
+    window.setTimeout(() => setToast(null), 3500)
   }
 
+  const wrap =
+    (key: 'checkin' | 'extend' | 'reset', fn: () => Promise<void>) =>
+    async () => {
+      if (busy) return
+      setError(null)
+      setBusy(key)
+      try {
+        await fn()
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Could not update timer.')
+      } finally {
+        setBusy(null)
+      }
+    }
+
+  const handleCheckIn = wrap('checkin', async () => {
+    await actions.checkIn(message)
+    setMessage('')
+    setJustCheckedIn(true)
+    window.setTimeout(() => setJustCheckedIn(false), 2200)
+    showToast('Check-in sent! Maria and Priya can see you’re safe.')
+  })
+
+  const handleAddHour = wrap('extend', async () => {
+    await actions.addOneHour()
+    showToast('Timer extended by 1 hour.')
+  })
+
+  const handlePlansChanged = wrap('reset', async () => {
+    await actions.startTimer(4 * 60 * 60_000)
+    showToast('New 4-hour timer started. Maria sees the update live.')
+  })
+
   return (
-    <div className="px-5 pt-8 pb-12 max-w-2xl mx-auto space-y-7">
-      <header className="space-y-2">
-        <h1 className="font-serif font-medium text-[34px] sm:text-5xl leading-[1.1] tracking-[-0.015em]">
+    <div className="px-5 pt-8 pb-12 max-w-2xl mx-auto space-y-6 relative">
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="sticky top-2 z-20 mx-auto max-w-md rounded-full bg-emerald-600 text-white text-sm font-medium px-4 py-2.5 shadow-[0_8px_24px_rgba(16,185,129,0.35)] flex items-center justify-center gap-2 [animation:check-pulse_300ms_ease-out]"
+        >
+          <span aria-hidden>✓</span>
+          {toast}
+        </div>
+      )}
+
+      <header className="space-y-1.5">
+        <h1 className="font-serif font-medium text-[28px] sm:text-4xl leading-[1.15] tracking-[-0.015em]">
           Hey {trip.traveler_name}{' '}
           <span aria-hidden className="inline-block">
             👋
           </span>
         </h1>
-        <p className="text-base sm:text-lg text-navy/70">
-          Your trip to{' '}
+        <p className="text-[15px] sm:text-base text-navy/70">
           <span className="italic text-coral">
             {trip.destination_city}, {trip.destination_country}
-          </span>
+          </span>{' '}
+          <span className="text-navy/40 mx-1" aria-hidden>
+            ·
+          </span>{' '}
+          {formatTripDateRange(trip.travel_dates_start, trip.travel_dates_end)}
         </p>
       </header>
 
-      <section className="rounded-2xl bg-white border border-navy/10 shadow-sm p-5 sm:p-6 space-y-4">
+      {expiresMs && status !== 'inactive' && (
+        <section className="rounded-2xl bg-white border border-navy/10 shadow-sm p-6 text-center space-y-2">
+          <p className="text-xs uppercase tracking-wider text-navy/60 font-semibold">
+            {now > expiresMs ? 'Overdue by' : 'Next check-in due in'}
+          </p>
+          <p
+            className={`font-mono text-4xl sm:text-5xl font-bold tabular-nums ${COUNTDOWN_TONE[status]}`}
+          >
+            {formatCountdown(expiresMs, now)}
+          </p>
+          <p className="text-sm text-navy/65 pt-1">
+            You've checked in{' '}
+            <span className="font-semibold text-navy">
+              {checkIns.length} {checkIns.length === 1 ? 'time' : 'times'}
+            </span>{' '}
+            this trip
+          </p>
+        </section>
+      )}
+
+      <div className="space-y-3">
         <div className="relative">
           <button
             type="button"
             onClick={handleCheckIn}
-            disabled={submitting}
-            className={`w-full inline-flex items-center justify-center gap-2 h-14 rounded-2xl font-bold text-lg shadow-[0_8px_24px_rgba(16,185,129,0.35)] transition-all duration-200 active:scale-[0.99] focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/40 disabled:opacity-70 disabled:cursor-not-allowed ${
+            disabled={busy !== null}
+            className={`w-full inline-flex items-center justify-center gap-2 h-14 rounded-full font-bold text-lg shadow-[0_8px_24px_rgba(34,197,94,0.35)] transition-all duration-200 active:scale-[0.99] focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/40 disabled:opacity-70 disabled:cursor-not-allowed ${
               justCheckedIn
                 ? 'bg-emerald-600 text-white scale-[1.02]'
-                : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                : 'bg-[#22C55E] hover:bg-emerald-600 text-white'
             }`}
           >
-            {submitting ? (
+            {busy === 'checkin' ? (
               <>Checking in…</>
             ) : justCheckedIn ? (
               <>
@@ -101,27 +181,39 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
           {justCheckedIn && (
             <span
               aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-2xl ring-4 ring-emerald-400/50 [animation:check-pulse_1.2s_ease-out]"
+              className="pointer-events-none absolute inset-0 rounded-full ring-4 ring-emerald-400/50 [animation:check-pulse_1.2s_ease-out]"
             />
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor="traveler-checkin-note"
-            className="block text-sm font-medium text-navy/80 mb-1.5"
+        <input
+          type="text"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Add a note — e.g. Just arrived at the riad!"
+          maxLength={140}
+          className="w-full rounded-full border border-navy/15 bg-white px-5 py-3 text-[15px] text-navy placeholder-navy/40 focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/30"
+        />
+
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={handleAddHour}
+            disabled={busy !== null || !trip.timer_expires_at}
+            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-coral text-coral bg-transparent font-semibold text-sm px-4 py-3 hover:bg-coral/5 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add a note <span className="text-navy/50">(optional)</span>
-          </label>
-          <input
-            id="traveler-checkin-note"
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="e.g., Just had the best tagine!"
-            maxLength={140}
-            className="w-full rounded-xl border border-navy/15 bg-white px-4 py-3 text-[15px] text-navy placeholder-navy/40 focus:border-coral focus:outline-none focus:ring-2 focus:ring-coral/30"
-          />
+            <span aria-hidden>⏰</span>
+            {busy === 'extend' ? 'Extending…' : 'Add 1 hour'}
+          </button>
+          <button
+            type="button"
+            onClick={handlePlansChanged}
+            disabled={busy !== null}
+            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-coral text-coral bg-transparent font-semibold text-sm px-4 py-3 hover:bg-coral/5 active:scale-[0.99] transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span aria-hidden>📝</span>
+            {busy === 'reset' ? 'Resetting…' : 'Plans changed'}
+          </button>
         </div>
 
         {error && (
@@ -129,42 +221,9 @@ export function TravelerCheckInView({ trip }: { trip: Trip }) {
             {error}
           </p>
         )}
-      </section>
+      </div>
 
-      {expiresMs && status !== 'inactive' && (
-        <section className="rounded-2xl bg-cream/60 border border-gold/40 p-5 text-center space-y-1">
-          <p className="text-xs uppercase tracking-wider text-navy/60 font-semibold">
-            {now > expiresMs ? 'Overdue by' : 'Next check-in due in'}
-          </p>
-          <p
-            className={`font-mono text-4xl sm:text-5xl font-bold tabular-nums ${COUNTDOWN_TONE[status]}`}
-          >
-            {formatCountdown(expiresMs, now)}
-          </p>
-          {status === 'green' && (
-            <p className="text-xs text-navy/55 italic pt-1">
-              Tap "I'm Safe" any time to reset the timer.
-            </p>
-          )}
-          {status === 'yellow' && (
-            <p className="text-xs text-yellow-800 font-medium pt-1">
-              ⏰ Almost time — check in now.
-            </p>
-          )}
-          {status === 'orange' && (
-            <p className="text-xs text-orange-800 font-medium pt-1">
-              You're overdue. A check-in clears the alert.
-            </p>
-          )}
-          {status === 'red' && (
-            <p className="text-xs text-red-700 font-medium pt-1">
-              🚨 Your contacts have been alerted. Check in now to clear.
-            </p>
-          )}
-        </section>
-      )}
-
-      <section className="space-y-3">
+      <section className="space-y-3 pt-2">
         <h2 className="text-sm uppercase tracking-wider text-navy/60 font-semibold">
           Recent check-ins
         </h2>
