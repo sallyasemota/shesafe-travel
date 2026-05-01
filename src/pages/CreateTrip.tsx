@@ -35,8 +35,17 @@ function csvToList(s: string): string[] {
 
 const STEP_LABELS = ['Trip', 'Contacts', 'Emergency Info'] as const
 
+interface CreatedTripSummary {
+  shareCode: string
+  travelerName: string
+  city: string
+  country: string
+}
+
 export default function CreateTrip() {
   const navigate = useNavigate()
+
+  const [success, setSuccess] = useState<CreatedTripSummary | null>(null)
 
   const [travelerName, setTravelerName] = useState('')
   const [city, setCity] = useState('')
@@ -173,7 +182,12 @@ export default function CreateTrip() {
         }),
       }).catch(() => {})
 
-      navigate(`/trip/${shareCode}`)
+      setSuccess({
+        shareCode,
+        travelerName: travelerName.trim(),
+        city: city.trim(),
+        country: country.trim(),
+      })
     } catch (err) {
       setErrorMsg(
         err instanceof Error
@@ -205,6 +219,10 @@ export default function CreateTrip() {
         </div>
       </header>
 
+      {success ? (
+        <SuccessScreen data={success} onView={() => navigate(`/trip/${success.shareCode}`)} />
+      ) : (
+        <>
       <section className="px-5 sm:px-8 pt-12 sm:pt-16 pb-8 max-w-2xl mx-auto text-center">
         <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-coral mb-5">
           New trip
@@ -701,6 +719,8 @@ export default function CreateTrip() {
           </p>
         </div>
       </section>
+        </>
+      )}
 
       <footer className="px-5 sm:px-8 pb-10 max-w-2xl mx-auto text-center space-y-1">
         <p className="text-xs text-navy/55">
@@ -770,5 +790,150 @@ function ProgressBar({ step }: { step: 1 | 2 | 3 }) {
         )
       })}
     </ol>
+  )
+}
+
+function SuccessScreen({
+  data,
+  onView,
+}: {
+  data: CreatedTripSummary
+  onView: () => void
+}) {
+  const [copied, setCopied] = useState(false)
+
+  const fullUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/trip/${data.shareCode}`
+      : `https://shesafe-travel.vercel.app/trip/${data.shareCode}`
+  const displayUrl = fullUrl.replace(/^https?:\/\//, '')
+
+  const shareMessage = `I'm using SheSafe Travel for my trip to ${data.city}. You can see my trip status, AI safety briefing, and emergency info here: ${fullUrl}`
+  const emailSubject = `My SheSafe Travel trip to ${data.city}`
+
+  const smsHref = `sms:?body=${encodeURIComponent(shareMessage)}`
+  const whatsappHref = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`
+  const mailHref = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(shareMessage)}`
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(fullUrl)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // clipboard unsupported — silent
+    }
+  }
+
+  return (
+    <section className="px-5 sm:px-8 pt-10 sm:pt-14 pb-16 max-w-2xl mx-auto">
+      <div className="text-center space-y-5">
+        <div
+          aria-hidden
+          className="mx-auto inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500 text-white text-4xl shadow-[0_12px_32px_rgba(16,185,129,0.35)] [animation:check-pulse_900ms_ease-out]"
+        >
+          ✓
+        </div>
+        <div className="space-y-2">
+          <h1 className="font-serif font-medium text-3xl sm:text-4xl leading-[1.1] tracking-[-0.015em]">
+            Your safety plan is ready!{' '}
+            <span aria-hidden className="text-emerald-600">
+              ✓
+            </span>
+          </h1>
+          <p className="text-base sm:text-lg text-navy/75">
+            <span className="font-semibold">{data.travelerName}'s</span> trip to{' '}
+            <span className="italic text-coral">
+              {data.city}, {data.country}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-9 rounded-2xl bg-white border border-gold/40 shadow-sm p-5 sm:p-6 space-y-3">
+        <p className="text-xs uppercase tracking-wider text-navy/60 font-semibold">
+          Your trip link
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+          <div className="flex-1 min-w-0 rounded-xl border border-navy/15 bg-cream/50 px-4 py-3 font-mono text-sm text-navy break-all">
+            {displayUrl}
+          </div>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className={`shrink-0 inline-flex items-center justify-center gap-1.5 rounded-full font-semibold text-sm px-5 py-3 min-h-[44px] transition-colors ${
+              copied
+                ? 'bg-emerald-500 text-white'
+                : 'bg-coral text-cream hover:opacity-90'
+            }`}
+          >
+            <span aria-hidden>{copied ? '✓' : '📋'}</span>
+            {copied ? 'Copied!' : 'Copy link'}
+          </button>
+        </div>
+        <p className="text-sm text-navy/70 leading-relaxed pt-1">
+          Send this link to your safety circle. They'll see your trip status,
+          safety briefing, and emergency info — no app needed.
+        </p>
+      </div>
+
+      <div className="mt-5 grid grid-cols-3 gap-2">
+        <ShareLinkButton
+          href={smsHref}
+          icon="📱"
+          label="Text"
+        />
+        <ShareLinkButton
+          href={whatsappHref}
+          icon="💬"
+          label="WhatsApp"
+          external
+        />
+        <ShareLinkButton
+          href={mailHref}
+          icon="📧"
+          label="Email"
+        />
+      </div>
+
+      <button
+        type="button"
+        onClick={onView}
+        className="mt-6 w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-coral text-cream font-semibold text-base shadow-[0_8px_30px_rgba(224,122,95,0.35)] hover:shadow-[0_12px_40px_rgba(224,122,95,0.45)] hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/60 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+      >
+        View your trip page <span aria-hidden>→</span>
+      </button>
+
+      <p className="mt-6 text-center text-xs text-navy/55 italic">
+        Bookmark this page — you'll check in from your trip page during your
+        trip.
+      </p>
+    </section>
+  )
+}
+
+function ShareLinkButton({
+  href,
+  icon,
+  label,
+  external,
+}: {
+  href: string
+  icon: string
+  label: string
+  external?: boolean
+}) {
+  return (
+    <a
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+      className="inline-flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 rounded-2xl border border-navy/15 bg-white px-3 py-3 text-sm font-semibold text-navy hover:border-coral hover:text-coral active:scale-[0.99] transition-colors"
+    >
+      <span aria-hidden className="text-lg">
+        {icon}
+      </span>
+      {label}
+    </a>
   )
 }
