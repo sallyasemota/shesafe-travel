@@ -90,8 +90,8 @@ function DataSourceBadge({
   const variant =
     source === 'demo'
       ? {
-          wrap: 'bg-coral/15 text-coral border-coral/40',
-          dot: 'bg-coral',
+          wrap: 'bg-navy/[0.06] text-navy/75 border-navy/15',
+          dot: 'bg-navy/40',
           label: 'Pre-loaded briefing',
         }
       : source === 'live'
