@@ -27,7 +27,7 @@ function Wordmark({ size = 'md' }: { size?: 'sm' | 'md' }) {
 function Nav() {
   return (
     <header className="border-b border-navy/[0.06]">
-      <div className="px-5 sm:px-8 py-5 max-w-6xl mx-auto flex items-center justify-between gap-4">
+      <div className="px-5 sm:px-8 py-5 max-w-6xl mx-auto flex items-center justify-between gap-3">
         <Link
           to="/"
           className="hover:opacity-80 transition-opacity"
@@ -35,15 +35,24 @@ function Nav() {
         >
           <Wordmark size="md" />
         </Link>
-        <Link
-          to="/create"
-          className="text-sm font-medium text-navy hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/40 focus-visible:ring-offset-2 focus-visible:ring-offset-cream rounded-full px-3 py-1"
-        >
-          Create a trip{' '}
-          <span aria-hidden className="ml-0.5">
-            →
+        <div className="flex items-center gap-3">
+          <span
+            className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-gold/25 border border-gold/50 px-3 py-1 text-[11px] font-semibold text-navy/80 tracking-wide"
+            title="Built for Women Build AI Build-A-Thon 2026"
+          >
+            <span aria-hidden>🏆</span>
+            Women Build AI 2026
           </span>
-        </Link>
+          <Link
+            to="/create"
+            className="text-sm font-medium text-navy hover:text-coral transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-coral/40 focus-visible:ring-offset-2 focus-visible:ring-offset-cream rounded-full px-3 py-1"
+          >
+            Create a trip{' '}
+            <span aria-hidden className="ml-0.5">
+              →
+            </span>
+          </Link>
+        </div>
       </div>
     </header>
   )
@@ -55,7 +64,7 @@ function Hero() {
       <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.28em] text-coral mb-7">
         Real-time travel safety, built for women
       </p>
-      <h1 className="font-serif font-medium text-5xl sm:text-7xl leading-[1.05] tracking-[-0.02em]">
+      <h1 className="font-serif font-medium text-[42px] sm:text-7xl leading-[1.05] tracking-[-0.02em]">
         Don't just travel safe.
         <br className="hidden sm:block" />{' '}
         <span className="italic text-coral">Travel connected.</span>
@@ -199,7 +208,7 @@ function HowItWorks() {
             <h3 className="mt-4 font-semibold text-lg tracking-tight">
               {s.title}
             </h3>
-            <p className="mt-3 text-sm text-navy/75 leading-relaxed">
+            <p className="mt-3 text-[15px] text-navy/75 leading-relaxed">
               {s.body}
             </p>
           </article>
@@ -282,7 +291,7 @@ function Features() {
               <h3 className="font-serif font-medium text-2xl sm:text-[28px] leading-snug tracking-tight">
                 {f.title}
               </h3>
-              <p className="mt-3 text-sm sm:text-[15px] text-navy/75 leading-relaxed">
+              <p className="mt-3 text-[15px] text-navy/75 leading-relaxed">
                 {f.body}
               </p>
             </article>
@@ -318,7 +327,16 @@ function SiteFooter() {
   return (
     <footer className="border-t border-navy/[0.06]">
       <div className="px-5 sm:px-8 py-10 max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
-        <Wordmark size="sm" />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <Wordmark size="sm" />
+          <span className="hidden sm:inline text-navy/20" aria-hidden>
+            ·
+          </span>
+          <span className="text-xs text-navy/65">
+            Built by{' '}
+            <span className="font-semibold text-navy/80">Sally Asemota</span>
+          </span>
+        </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-navy/55">
           <span>Built for Women Build AI Build-A-Thon 2026</span>
           <span className="hidden sm:inline text-navy/20" aria-hidden>

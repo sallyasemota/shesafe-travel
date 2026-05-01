@@ -134,7 +134,7 @@ export function EmergencyActions({
           <li key={a.key}>
             <a
               href={a.tel}
-              className="flex items-center justify-between gap-3 rounded-xl bg-cream/40 border border-gold/40 px-4 py-3 hover:bg-cream/60 active:scale-[0.99] transition"
+              className="flex items-center justify-between gap-3 min-h-[64px] rounded-xl bg-cream/40 border border-gold/40 px-4 py-3 hover:bg-cream/60 active:scale-[0.99] transition"
             >
               <div className="min-w-0">
                 <p className="font-semibold text-navy truncate">{a.label}</p>
@@ -142,7 +142,7 @@ export function EmergencyActions({
                   <p className="text-sm text-navy/70 truncate">{a.detail}</p>
                 )}
               </div>
-              <span className="shrink-0 rounded-full bg-coral text-cream font-semibold text-xs px-3 py-1.5">
+              <span className="shrink-0 inline-flex items-center justify-center rounded-full bg-coral text-cream font-semibold text-sm px-4 py-2">
                 Call
               </span>
             </a>

@@ -204,7 +204,7 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
       {trip.share_code === 'marrakech-demo' && <DemoBanner trip={trip} />}
 
       <header className="px-5 pt-8 pb-6 max-w-2xl mx-auto">
-        <h1 className="font-serif font-medium text-3xl md:text-5xl leading-[1.1] tracking-[-0.015em]">
+        <h1 className="font-serif font-medium text-[28px] sm:text-3xl md:text-5xl leading-[1.15] tracking-[-0.015em] break-words">
           {trip.traveler_name}'s trip to{' '}
           <span className="italic text-coral">
             {trip.destination_city}, {trip.destination_country}
@@ -294,11 +294,19 @@ function TripView({ trip, traveler }: { trip: Trip; traveler: boolean }) {
         </section>
       </div>
 
-      <footer className="px-5 pb-10 max-w-2xl mx-auto text-center space-y-1">
+      <footer className="px-5 pb-10 pt-6 max-w-2xl mx-auto text-center space-y-1.5">
         <p className="text-sm font-medium text-navy/70">
           Powered by SheSafe Travel
         </p>
-        <p className="text-xs text-navy/50">This page updates in real-time.</p>
+        <p className="text-xs text-navy/55">
+          Built by{' '}
+          <span className="font-semibold text-navy/75">Sally Asemota</span>
+          <span className="text-navy/30 mx-1.5" aria-hidden>·</span>
+          Built for Women Build AI Build-A-Thon 2026
+        </p>
+        <p className="text-xs text-navy/45">
+          Powered by Claude, Supabase, Firecrawl
+        </p>
       </footer>
 
       {showWarningOverlay && trip.timer_expires_at && (

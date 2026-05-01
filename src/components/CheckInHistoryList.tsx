@@ -29,10 +29,10 @@ export function CheckInHistoryList({ checkIns }: { checkIns: CheckIn[] }) {
       {checkIns.map((c) => (
         <li
           key={c.id}
-          className="rounded-lg bg-cream/50 border border-gold/30 px-3 py-2"
+          className="rounded-lg bg-cream/50 border border-gold/30 px-3 py-2.5"
         >
           <div className="flex items-baseline justify-between gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-navy">
+            <span className="text-[15px] font-semibold text-navy">
               Checked in at {formatClock(c.created_at, now)}
             </span>
             <span className="text-xs text-navy/50">
@@ -40,7 +40,9 @@ export function CheckInHistoryList({ checkIns }: { checkIns: CheckIn[] }) {
             </span>
           </div>
           {c.message && (
-            <p className="text-sm text-navy/80 mt-1">"{c.message}"</p>
+            <p className="text-[15px] text-navy/80 mt-1 break-words">
+              "{c.message}"
+            </p>
           )}
         </li>
       ))}

@@ -667,12 +667,12 @@ export default function CreateTrip() {
                   Next <span aria-hidden className="ml-1">→</span>
                 </button>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-[auto_1fr] gap-3">
                   <button
                     type="button"
                     onClick={goBack}
                     disabled={submitting}
-                    className="inline-flex items-center justify-center px-4 py-3 rounded-full bg-white text-navy border border-navy/15 font-semibold hover:bg-navy/5 active:scale-[0.99] transition disabled:opacity-50"
+                    className="inline-flex items-center justify-center px-5 py-3 rounded-full bg-white text-navy border border-navy/15 font-semibold hover:bg-navy/5 active:scale-[0.99] transition disabled:opacity-50"
                   >
                     <span aria-hidden className="mr-1">
                       ←
@@ -687,7 +687,7 @@ export default function CreateTrip() {
                     {step === 3
                       ? submitting
                         ? 'Creating…'
-                        : 'Create My Safety Plan'
+                        : 'Create my plan'
                       : 'Next →'}
                   </button>
                 </div>
@@ -701,6 +701,18 @@ export default function CreateTrip() {
           </p>
         </div>
       </section>
+
+      <footer className="px-5 sm:px-8 pb-10 max-w-2xl mx-auto text-center space-y-1">
+        <p className="text-xs text-navy/55">
+          Built by{' '}
+          <span className="font-semibold text-navy/75">Sally Asemota</span>
+          <span className="text-navy/30 mx-1.5" aria-hidden>·</span>
+          Built for Women Build AI Build-A-Thon 2026
+        </p>
+        <p className="text-xs text-navy/45">
+          Powered by Claude, Supabase, Firecrawl
+        </p>
+      </footer>
     </main>
   )
 }

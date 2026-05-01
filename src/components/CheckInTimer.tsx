@@ -181,13 +181,13 @@ export function CheckInTimer({
         <p className="text-xs uppercase tracking-wider text-navy/60 font-semibold mb-2">
           Duration
         </p>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {PRESETS.map((p) => (
             <button
               key={p.key}
               type="button"
               onClick={() => setPresetKey(p.key)}
-              className={`rounded-full px-3 py-2 text-sm font-medium border transition ${
+              className={`rounded-full px-3 py-2.5 text-sm font-medium border transition ${
                 presetKey === p.key
                   ? 'bg-coral text-cream border-coral'
                   : 'bg-white text-navy border-navy/15 hover:bg-navy/5'
@@ -199,7 +199,7 @@ export function CheckInTimer({
           <button
             type="button"
             onClick={() => setPresetKey('custom')}
-            className={`rounded-full px-3 py-2 text-sm font-medium border transition ${
+            className={`rounded-full px-3 py-2.5 text-sm font-medium border transition ${
               presetKey === 'custom'
                 ? 'bg-coral text-cream border-coral'
                 : 'bg-white text-navy border-navy/15 hover:bg-navy/5'

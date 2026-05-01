@@ -104,7 +104,7 @@ function DataSourceBadge({ live }: { live: boolean }) {
 function EmergencyRow({ label, value }: { label: string; value: string }) {
   const tel = extractTel(value)
   return (
-    <li className="flex items-baseline justify-between gap-3 py-2">
+    <li className="flex items-center justify-between gap-3 py-3">
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-navy">{label}</p>
         <p className="text-sm text-navy/80 break-words">{value}</p>
@@ -112,7 +112,7 @@ function EmergencyRow({ label, value }: { label: string; value: string }) {
       {tel && (
         <a
           href={tel}
-          className="shrink-0 rounded-full bg-coral text-cream text-xs font-semibold px-3 py-1.5 hover:opacity-90 active:scale-95 transition"
+          className="shrink-0 inline-flex items-center justify-center min-h-[44px] rounded-full bg-coral text-cream text-sm font-semibold px-4 py-2 hover:opacity-90 active:scale-95 transition"
         >
           Call
         </a>
@@ -156,7 +156,7 @@ function AccordionItem({
         }`}
       >
         <div className="overflow-hidden">
-          <div className="px-4 pb-4 text-sm text-navy/85 whitespace-pre-line">
+          <div className="px-4 pb-4 text-[15px] leading-relaxed text-navy/85 whitespace-pre-line">
             {children}
           </div>
         </div>
