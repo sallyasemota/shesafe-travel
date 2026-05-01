@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { useCheckInActions } from '../hooks/useCheckInActions'
+import { useNow } from '../hooks/useNow'
+import { computeVisualStatus } from '../lib/tripStatus'
 import type { Trip } from '../types/trip'
+
+type DemoTone = 'emerald' | 'yellow' | 'orange' | 'red'
 
 export type DemoViewerMode = 'mom' | 'sofia'
 
@@ -14,8 +18,24 @@ export function DemoBanner({
   onChangeViewerMode: (mode: DemoViewerMode) => void
 }) {
   const actions = useCheckInActions(trip)
+  const now = useNow(1000)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Active demo button reflects the trip's current visual status, so the
+  // highlight matches what the rest of the page is actually rendering —
+  // including when the cascade auto-progresses (yellow→orange→red).
+  const visualStatus = computeVisualStatus(trip, now)
+  const activeKey: 'green' | 'yellow' | 'orange' | 'red' | null =
+    visualStatus === 'green'
+      ? 'green'
+      : visualStatus === 'yellow'
+        ? 'yellow'
+        : visualStatus === 'orange'
+          ? 'orange'
+          : visualStatus === 'red'
+            ? 'red'
+            : null
 
   const run = (key: string, fn: () => Promise<void>) => async () => {
     if (busy) return
@@ -101,24 +121,28 @@ export function DemoBanner({
               busy={busy === 'green'}
               tone="emerald"
               label="Green"
+              active={activeKey === 'green'}
             />
             <DemoButton
               onClick={triggerYellow}
               busy={busy === 'yellow'}
               tone="yellow"
               label="Yellow"
+              active={activeKey === 'yellow'}
             />
             <DemoButton
               onClick={triggerOrange}
               busy={busy === 'orange'}
               tone="orange"
               label="Overdue"
+              active={activeKey === 'orange'}
             />
             <DemoButton
               onClick={triggerRed}
               busy={busy === 'red'}
               tone="red"
               label="Alert"
+              active={activeKey === 'red'}
             />
           </div>
           {error && (
@@ -216,31 +240,46 @@ function FeaturePill({ children }: { children: React.ReactNode }) {
 }
 
 const TONE_STYLES: Record<
-  'emerald' | 'yellow' | 'orange' | 'red',
-  { idle: string; hover: string; dot: string; ring: string }
+  DemoTone,
+  {
+    idle: string
+    hover: string
+    dot: string
+    activeDot: string
+    activeFill: string
+    ring: string
+  }
 > = {
   emerald: {
     idle: 'bg-white text-emerald-900 border-emerald-300',
     hover: 'hover:bg-emerald-50 hover:border-emerald-400',
     dot: 'bg-emerald-500',
+    activeDot: 'bg-white',
+    activeFill: 'bg-emerald-500 text-white border-emerald-500 shadow-[0_4px_14px_rgba(16,185,129,0.30)]',
     ring: 'focus-visible:ring-emerald-400',
   },
   yellow: {
     idle: 'bg-white text-yellow-900 border-yellow-300',
     hover: 'hover:bg-yellow-50 hover:border-yellow-400',
     dot: 'bg-yellow-500',
+    activeDot: 'bg-white',
+    activeFill: 'bg-amber-500 text-white border-amber-500 shadow-[0_4px_14px_rgba(245,158,11,0.30)]',
     ring: 'focus-visible:ring-yellow-400',
   },
   orange: {
     idle: 'bg-white text-orange-900 border-orange-300',
     hover: 'hover:bg-orange-50 hover:border-orange-400',
     dot: 'bg-orange-500',
+    activeDot: 'bg-white',
+    activeFill: 'bg-orange-500 text-white border-orange-500 shadow-[0_4px_14px_rgba(249,115,22,0.30)]',
     ring: 'focus-visible:ring-orange-400',
   },
   red: {
     idle: 'bg-white text-red-900 border-red-300',
     hover: 'hover:bg-red-50 hover:border-red-400',
     dot: 'bg-red-600',
+    activeDot: 'bg-white',
+    activeFill: 'bg-red-600 text-white border-red-600 shadow-[0_4px_14px_rgba(220,38,38,0.30)]',
     ring: 'focus-visible:ring-red-400',
   },
 }
@@ -250,22 +289,28 @@ function DemoButton({
   busy,
   tone,
   label,
+  active,
 }: {
   onClick: () => void
   busy: boolean
-  tone: 'emerald' | 'yellow' | 'orange' | 'red'
+  tone: DemoTone
   label: string
+  active: boolean
 }) {
   const styles = TONE_STYLES[tone]
+  const visual = active
+    ? `${styles.activeFill} ${styles.ring}`
+    : `${styles.idle} ${styles.hover} ${styles.ring}`
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={busy}
-      className={`inline-flex items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${styles.idle} ${styles.hover} ${styles.ring}`}
+      aria-pressed={active}
+      className={`inline-flex items-center justify-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-cream ${visual}`}
     >
       <span
-        className={`h-2 w-2 rounded-full ${styles.dot}`}
+        className={`h-2 w-2 rounded-full ${active ? styles.activeDot : styles.dot}`}
         aria-hidden
       />
       {busy ? 'Setting…' : label}
