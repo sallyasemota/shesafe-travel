@@ -6,6 +6,7 @@ export default function Landing() {
       <Nav />
       <Hero />
       <HowItWorks />
+      <SocialProofStat />
       <Features />
       <FinalCta />
       <SiteFooter />
@@ -64,6 +65,12 @@ function Hero() {
         briefings, real-time check-ins, and instant emergency coordination —
         through a single shareable URL.
       </p>
+      <p className="mt-5 text-base sm:text-lg italic text-coral/80 max-w-xl mx-auto leading-relaxed">
+        Because "text me when you land" shouldn't be the only safety plan.
+      </p>
+
+      <PhoneMockup />
+
       <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
         <Link
           to="/create"
@@ -85,20 +92,79 @@ function Hero() {
   )
 }
 
+function PhoneMockup() {
+  return (
+    <div className="mt-12 sm:mt-14 max-w-md mx-auto">
+      <div className="rounded-2xl bg-white shadow-[0_20px_60px_rgba(61,64,91,0.18)] border border-navy/10 overflow-hidden text-left">
+        {/* Browser-style top bar */}
+        <div className="bg-navy/5 border-b border-navy/10 px-4 py-3 flex items-center gap-1.5">
+          <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+          <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
+          <span
+            aria-hidden
+            className="h-2.5 w-2.5 rounded-full bg-emerald-400/70"
+          />
+          <span className="ml-3 text-[10px] text-navy/45 truncate">
+            shesafe-travel.vercel.app/trip/sofia-marrakech
+          </span>
+        </div>
+
+        {/* Trip page mini */}
+        <div className="bg-cream px-5 sm:px-6 py-5 sm:py-6">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.22em] text-coral">
+            SheSafe Travel
+          </p>
+          <h3 className="mt-1.5 font-serif font-medium text-xl sm:text-2xl leading-tight tracking-tight text-navy">
+            Sofia's trip to{' '}
+            <span className="italic text-coral">Marrakech</span>
+          </h3>
+          <p className="mt-1 text-xs text-navy/65">May 2 → May 9</p>
+
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-100 border border-emerald-300 px-3 py-1 text-[11px] font-semibold text-emerald-800">
+            <span className="relative flex h-2 w-2" aria-hidden>
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            Checked in 12 min ago
+          </div>
+
+          <div className="mt-4 rounded-xl bg-white border border-navy/10 p-4">
+            <p className="text-[9px] uppercase tracking-wider text-navy/55 font-semibold">
+              Time remaining
+            </p>
+            <p className="mt-1 font-mono text-2xl sm:text-3xl font-bold tabular-nums text-navy">
+              03:47:21
+            </p>
+            <p className="mt-2 text-[11px] text-navy/65 italic">
+              Last check-in 12 min ago — "At the riad, all good."
+            </p>
+          </div>
+        </div>
+      </div>
+      <p className="mt-3 text-[11px] text-navy/45 text-center">
+        Live preview — what mom sees from the link.
+      </p>
+    </div>
+  )
+}
+
 function HowItWorks() {
   const steps = [
     {
       n: '01',
+      icon: '📍',
       title: 'Plan your trip',
       body: 'Add your destination, travel dates, and the people you want kept in the loop. Optionally include passport, medical, and where you’re staying.',
     },
     {
       n: '02',
+      icon: '📱',
       title: 'Share one link',
       body: 'Tap Send to contacts. Mom, your partner, anyone you trust gets a live page — no app to download, no account to create.',
     },
     {
       n: '03',
+      icon: '💚',
       title: 'Stay safe together',
       body: 'Set a check-in timer. They watch a live countdown. If you don’t check in, the page escalates and emergency info appears.',
     },
@@ -121,10 +187,16 @@ function HowItWorks() {
             key={s.n}
             className="rounded-3xl bg-white border border-navy/[0.06] p-7 sm:p-8 shadow-[0_2px_24px_rgba(61,64,91,0.04)] hover:shadow-[0_8px_32px_rgba(61,64,91,0.08)] hover:-translate-y-0.5 transition-all duration-200"
           >
-            <p className="font-serif font-medium text-4xl text-coral leading-none">
+            <div
+              aria-hidden
+              className="text-4xl mb-4 leading-none"
+            >
+              {s.icon}
+            </div>
+            <p className="font-serif font-medium text-2xl text-coral leading-none">
               {s.n}
             </p>
-            <h3 className="mt-6 font-semibold text-lg tracking-tight">
+            <h3 className="mt-4 font-semibold text-lg tracking-tight">
               {s.title}
             </h3>
             <p className="mt-3 text-sm text-navy/75 leading-relaxed">
@@ -137,25 +209,45 @@ function HowItWorks() {
   )
 }
 
+function SocialProofStat() {
+  return (
+    <section className="px-5 sm:px-8 max-w-4xl mx-auto">
+      <div className="border-y border-navy/10 py-14 sm:py-20 text-center space-y-5">
+        <p className="font-serif font-semibold text-coral text-7xl sm:text-8xl leading-none tracking-[-0.02em]">
+          72%
+        </p>
+        <p className="font-serif font-medium text-2xl sm:text-3xl text-navy leading-snug max-w-2xl mx-auto tracking-tight">
+          of women have traveled solo —{' '}
+          <span className="italic">but most do it without a safety plan.</span>
+        </p>
+      </div>
+    </section>
+  )
+}
+
 function Features() {
   const items = [
     {
       eyebrow: 'Feature 01',
+      icon: '🔗',
       title: 'Shareable trip safety page',
       body: 'Every trip lives at one URL. Anyone with the link sees real-time data — no install, no login, no code to enter. Mom keeps the page open; everything updates live.',
     },
     {
       eyebrow: 'Feature 02',
+      icon: '🛡️',
       title: 'AI safety briefing',
       body: 'Claude generates a women-specific briefing for each destination — cultural norms, harassment patterns, transport, safe areas, local emergency numbers, key local-language phrases, and a color-coded risk level. Live State Department advisories when available.',
     },
     {
       eyebrow: 'Feature 03',
+      icon: '⏱️',
       title: 'Check-in timer with escalation',
       body: 'Pick a duration. Status flows green to yellow to orange to red. At yellow, a vibrating overlay reminds you. At red, the page reveals passport and medical info to the people you trust most. All in real time, no refresh.',
     },
     {
       eyebrow: 'Feature 04',
+      icon: '📄',
       title: 'Offline & emergency PDFs',
       body: 'Two downloadable packets: a printable safety packet for your pocket and an "If I Go Missing" packet to hand to authorities. Generated client-side so they work offline.',
     },
@@ -178,7 +270,13 @@ function Features() {
               key={i}
               className="rounded-3xl bg-cream/60 border border-gold/30 p-7 sm:p-9"
             >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral mb-4">
+              <div
+                aria-hidden
+                className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-coral/10 text-3xl mb-5"
+              >
+                {f.icon}
+              </div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral mb-3">
                 {f.eyebrow}
               </p>
               <h3 className="font-serif font-medium text-2xl sm:text-[28px] leading-snug tracking-tight">
@@ -199,8 +297,7 @@ function FinalCta() {
   return (
     <section className="px-5 sm:px-8 py-20 sm:py-28 max-w-3xl mx-auto text-center">
       <h2 className="font-serif font-medium text-4xl sm:text-5xl leading-tight tracking-[-0.015em]">
-        Ready for your{' '}
-        <span className="italic text-coral">next trip?</span>
+        Ready for your <span className="italic text-coral">next trip?</span>
       </h2>
       <p className="mt-5 text-lg text-navy/75 leading-relaxed">
         Setup takes about 90 seconds. Mom gets one link.
